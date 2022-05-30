@@ -2,6 +2,7 @@ package com.github.longboyy.evolution.listeners;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.traits.ITrait;
+import com.github.longboyy.evolution.traits.TraitEntity;
 import com.github.longboyy.evolution.traits.TraitManager;
 import com.github.longboyy.evolution.traits.TraitType;
 import com.google.common.collect.ImmutableMap;
@@ -45,7 +46,7 @@ public class EntityListener implements Listener {
 			case OCELOT_BABY:
 			case SPAWNER_EGG:
 			case DEFAULT:
-				manager.generateTraitsFor(entity);
+				//manager.generateTraitsFor(entity);
 			default:
 				return;
 		}
@@ -59,7 +60,7 @@ public class EntityListener implements Listener {
 
 		LivingEntity entity = event.getEntity();
 		TraitManager manager = this.plugin.getTraitManager();
-		manager.generateTraitsFor(entity, event.getMother(), event.getFather());
+		//manager.generateTraitsFor(entity, event.getMother(), event.getFather());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -67,15 +68,15 @@ public class EntityListener implements Listener {
 		//this.plugin.info("Loading animals in chunk");
 		TraitManager manager = this.plugin.getTraitManager();
 		//this.plugin.info(String.format("Found %s generic entities in chunk", event.getChunk().getEntities().length));
-		Set<LivingEntity> entities = event.getEntities().stream()
+		Set<TraitEntity> entities = event.getEntities().stream()
 				.filter(entity -> entity instanceof LivingEntity)
-				.map(entity -> (LivingEntity)entity).collect(Collectors.toSet());
+				.map(entity -> new TraitEntity(entity)).collect(Collectors.toSet());
 		//this.plugin.info(String.format("Found %s living entities in chunk", entities.size()));
 
 		entities.forEach(entity -> {
-			ImmutableMap<ITrait, TraitType> traits = manager.getAllTraitsOf(entity);
+			ImmutableMap<ITrait, TraitType> traits = entity.getTraits();
 			if(traits.isEmpty()){
-				manager.generateTraitsFor(entity);
+				//manager.generateTraitsFor(entity);
 			}
 		});
 	}

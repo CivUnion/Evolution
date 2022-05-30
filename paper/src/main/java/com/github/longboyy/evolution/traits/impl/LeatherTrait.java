@@ -2,10 +2,7 @@ package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.listeners.TraitListener;
-import com.github.longboyy.evolution.traits.Trait;
-import com.github.longboyy.evolution.traits.TraitCategory;
-import com.github.longboyy.evolution.traits.TraitManager;
-import com.github.longboyy.evolution.traits.TraitType;
+import com.github.longboyy.evolution.traits.*;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
@@ -46,9 +43,9 @@ public class LeatherTrait extends Trait {
 		listener.registerEvent(EntityDeathEvent.class, _event -> {
 			EntityDeathEvent event = (EntityDeathEvent) _event;
 
-			LivingEntity entity = event.getEntity();
+			TraitEntity entity = new TraitEntity(event.getEntity());
 
-			if(!this.manager.hasTrait(entity, this, TraitType.ACTIVE)){
+			if(!entity.hasTrait(this, TraitType.ACTIVE)){
 				return;
 			}
 
@@ -63,7 +60,7 @@ public class LeatherTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		double realAmount = MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue);
 		int amount = Math.toIntExact(Math.round(realAmount));
@@ -89,7 +86,7 @@ public class LeatherTrait extends Trait {
 
 	}
 
-	private double getMultiplier(LivingEntity entity){
+	private double getMultiplier(TraitEntity entity){
 		double variation = this.getVariation(entity);
 		if(variation > 0D){
 			return this.variationExpression.setVariable("x", variation).evaluate();

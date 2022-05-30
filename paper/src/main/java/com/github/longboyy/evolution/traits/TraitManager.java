@@ -43,7 +43,7 @@ public class TraitManager {
 		this.traitsByClass = new HashMap<>();
 		this.traitById = new HashMap<>();
 		this.traitsByEntityType = new HashMap<>();
-		this.listener = new TraitListener(this.plugin, this);
+		this.listener = new TraitListener(this.plugin);
 
 		/*
 		ConfigurationSection section = this.plugin.getConfigParser().getConfig();
@@ -136,8 +136,42 @@ public class TraitManager {
 			typeTraits.add(trait);
 		}
 
+		if(trait instanceof ListenerTrait){
+			this.plugin.registerListener((ListenerTrait)trait);
+		}
+
 	}
 
+	public ITrait getTrait(String id){
+		return this.traitById.get(id);
+	}
+
+	public <T extends ITrait> T getTrait(Class<? extends T> clazz){
+		ITrait trait = this.traitsByClass.get(clazz);
+		try{
+			return (T)trait;
+		}catch(Exception e){
+			return null;
+		}
+	}
+
+	public ImmutableSet<ITrait> getTraitsByEntityType(EntityType type){
+		Set<ITrait> traits = this.traitsByEntityType.get(type);
+		if(traits == null){
+			return ImmutableSet.copyOf(new HashSet<>());
+		}
+		return ImmutableSet.copyOf(traits);
+	}
+
+	public ImmutableSet<ITrait> getTraitsByCategory(TraitCategory category){
+		return ImmutableSet.copyOf(this.traitsByCategory.get(category));
+	}
+
+	public ImmutableSet<ITrait> getTraits(){
+		return ImmutableSet.copyOf(this.traits);
+	}
+
+	/*
 	public ImmutableSet<LivingEntity> getEntitiesWith(ITrait trait){
 		Set<LivingEntity> resultSet = new HashSet<>();
 		for(World world : Bukkit.getWorlds()){
@@ -173,35 +207,6 @@ public class TraitManager {
 
 	public boolean hasTrait(LivingEntity entity, ITrait trait){
 		return this.hasTrait(entity, trait, TraitType.ACTIVE) || this.hasTrait(entity, trait, TraitType.INACTIVE);
-	}
-
-	public ITrait getTrait(String id){
-		return this.traitById.get(id);
-	}
-
-	public <T extends ITrait> T getTrait(Class<? extends T> clazz){
-		ITrait trait = this.traitsByClass.get(clazz);
-		try{
-			return (T)trait;
-		}catch(Exception e){
-			return null;
-		}
-	}
-
-	public ImmutableSet<ITrait> getTraitsByEntityType(EntityType type){
-		Set<ITrait> traits = this.traitsByEntityType.get(type);
-		if(traits == null){
-			return ImmutableSet.copyOf(new HashSet<>());
-		}
-		return ImmutableSet.copyOf(traits);
-	}
-
-	public ImmutableSet<ITrait> getTraitsByCategory(TraitCategory category){
-		return ImmutableSet.copyOf(this.traitsByCategory.get(category));
-	}
-
-	public ImmutableSet<ITrait> getTraits(){
-		return ImmutableSet.copyOf(this.traits);
 	}
 
 	public ImmutableSet<ITrait> getActiveTraitsOf(LivingEntity entity){
@@ -533,6 +538,7 @@ public class TraitManager {
 		PersistentDataContainerExtensions.setList(pdc, type.getKey(), PersistentDataType.STRING, traitsArray);
 		return true;
 	}
+	 */
 }
 
 /*

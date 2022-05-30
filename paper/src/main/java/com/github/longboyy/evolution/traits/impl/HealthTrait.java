@@ -51,7 +51,7 @@ public class HealthTrait extends Trait {
 	}
 
 	@Override
-	public boolean applyTrait(LivingEntity entity, double variation){
+	public boolean applyTrait(TraitEntity entity, double variation){
 		boolean success = super.applyTrait(entity, variation);
 		if(success){
 			AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
@@ -104,7 +104,7 @@ public class HealthTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		//int amount = Math.toIntExact(Math.round(MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue)));
 		//newBuilder.hoverEvent(HoverEvent.showItem(Material.BONE.getKey(), amount, null));
@@ -139,7 +139,7 @@ public class HealthTrait extends Trait {
 
 	}
 
-	private double getExtraHealth(LivingEntity entity){
+	private double getExtraHealth(TraitEntity entity){
 		AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 		if(attribute == null){
 			return 0D;
@@ -154,7 +154,7 @@ public class HealthTrait extends Trait {
 		return 0D;
 	}
 
-	private double getExtraHealth(LivingEntity entity, double variation){
+	private double getExtraHealth(TraitEntity entity, double variation){
 		double modifiedHealth = this.healthMap.getOrDefault(entity.getType(), defaultValue);
 
 		if(variation >= 0){

@@ -2,6 +2,7 @@ package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.traits.Trait;
 import com.github.longboyy.evolution.traits.TraitCategory;
+import com.github.longboyy.evolution.traits.TraitEntity;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
@@ -40,7 +41,7 @@ public class SpeedTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		newBuilder.append(Component.newline());
 		newBuilder.append(Component.text("Speed:"));
@@ -52,7 +53,7 @@ public class SpeedTrait extends Trait {
 	}
 
 	@Override
-	public boolean applyTrait(LivingEntity entity, double variation) {
+	public boolean applyTrait(TraitEntity entity, double variation) {
 		boolean success = super.applyTrait(entity, variation);
 		if(success){
 			AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
@@ -113,7 +114,7 @@ public class SpeedTrait extends Trait {
 		return bps / 43.17D;
 	}
 
-	private double getExtraSpeed(LivingEntity entity, double variation){
+	private double getExtraSpeed(TraitEntity entity, double variation){
 		double modifiedSpeed = this.maxSpeedMap.getOrDefault(entity.getType(), defaultValue);
 
 		if(variation >= 0){

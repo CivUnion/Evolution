@@ -2,10 +2,8 @@ package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.listeners.TraitListener;
-import com.github.longboyy.evolution.traits.Trait;
-import com.github.longboyy.evolution.traits.TraitCategory;
-import com.github.longboyy.evolution.traits.TraitManager;
-import com.github.longboyy.evolution.traits.TraitType;
+import com.github.longboyy.evolution.traits.*;
+import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.minecraft.world.entity.animal.Animal;
 import net.objecthunter.exp4j.Expression;
@@ -69,12 +67,12 @@ public class FertileTrait extends Trait {
 		listener.registerEvent(EntityBreedEvent.class, _event -> {
 			EntityBreedEvent event = (EntityBreedEvent) _event;
 
-			LivingEntity mother = event.getMother();
-			LivingEntity father = event.getFather();
+			TraitEntity mother = new TraitEntity(event.getMother());
+			TraitEntity father = new TraitEntity(event.getFather());
 
 			Evolution.getInstance().info("Entity breed event");
 
-			if(manager.hasTrait(mother, this, TraitType.ACTIVE)){
+			if(mother.hasTrait(this, TraitType.ACTIVE)){
 				if(this.getLoveTime(mother) > 0L){
 					event.setCancelled(true);
 					return;
@@ -86,7 +84,7 @@ public class FertileTrait extends Trait {
 				Evolution.getInstance().info("Set mother love time");
 			}
 
-			if(manager.hasTrait(father, this, TraitType.ACTIVE)){
+			if(father.hasTrait(this, TraitType.ACTIVE)){
 				if(this.getLoveTime(father) > 0L){
 					event.setCancelled(true);
 					return;
@@ -102,11 +100,13 @@ public class FertileTrait extends Trait {
 		listener.registerEvent(EntityEnterLoveModeEvent.class, _event -> {
 			EntityEnterLoveModeEvent event = (EntityEnterLoveModeEvent) _event;
 
-			if(event.isCancelled() || !this.hasLoveTime(event.getEntity())){
+			TraitEntity entity = new TraitEntity(event.getEntity());
+
+			if(event.isCancelled() || !this.hasLoveTime(entity)){
 				return;
 			}
 
-			if(this.getLoveTime(event.getEntity()) > 0L){
+			if(this.getLoveTime(entity) > 0L){
 				event.setCancelled(true);
 			}
 		});
@@ -121,13 +121,14 @@ public class FertileTrait extends Trait {
 			}
 			cooldownHandler.putOnCoolDown(event.getPlayer().getUniqueId());
 
-			LivingEntity entity = (LivingEntity) event.getRightClicked();
-			if(!(entity instanceof Animals)){
+			TraitEntity entity = new TraitEntity(event.getRightClicked());
+			//LivingEntity entity = (LivingEntity) event.getRightClicked();
+			if(!(entity.entity instanceof Animals)){
 				Evolution.getInstance().info("Attempted to breed entity but it was not an animal");
 				return;
 			}
 
-			if(!manager.hasTrait(entity, this, TraitType.ACTIVE)){
+			if(!entity.hasTrait(this, TraitType.ACTIVE)){
 				Evolution.getInstance().info("Attempted to breed entity but it did not have a valid trait");
 				return;
 			}
@@ -140,7 +141,7 @@ public class FertileTrait extends Trait {
 				return;
 			}
 
-			Animals animal = (Animals) entity;
+			Animals animal = (Animals) entity.entity;
 			if(!animal.isAdult()){
 				return;
 			}
@@ -164,14 +165,14 @@ public class FertileTrait extends Trait {
 				animal.setBreed(true);
 				animal.getWorld().spawnParticle(Particle.HEART, animal.getLocation().toCenterLocation().add(0D, animal.getHeight(), 0D), 1);
 				Evolution.getInstance().info("We should be in love mode!");
-				this.setLoveTime(animal, Math.round(this.fertileBaseTimeTicks-(this.maxValue*this.getModifier(animal))));
+				this.setLoveTime(entity, Math.round(this.fertileBaseTimeTicks-(this.maxValue*this.getModifier(entity))));
 			}
 		});
 
 		this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Evolution.getInstance(), () -> {
-			ImmutableSet<LivingEntity> entities = Evolution.getInstance().getTraitManager().getEntitiesWith(this, TraitType.ACTIVE);
-			for(LivingEntity entity : entities){
-				//this.getDownWithTheSickness(entity);
+			//ImmutableSet<LivingEntity> entities = Evolution.getInstance().getTraitManager().getEntitiesWith(this, TraitType.ACTIVE);
+			ImmutableSet<TraitEntity> entities = TraitUtils.getEntitiesWithTrait(this, TraitType.ACTIVE);
+			for(TraitEntity entity : entities){
 				long time = this.getLoveTime(entity);
 
 				if(time > 0) {
@@ -189,7 +190,7 @@ public class FertileTrait extends Trait {
 	}
 
 	@Override
-	public boolean applyTrait(LivingEntity entity, double variation) {
+	public boolean applyTrait(TraitEntity entity, double variation) {
 		boolean success = super.applyTrait(entity, variation);
 		if(success){
 			this.setLoveTime(entity, 0L);
@@ -226,17 +227,17 @@ public class FertileTrait extends Trait {
 		return new ExpressionBuilder(exp).variable("x").build();
 	}
 
-	private void setLoveTime(LivingEntity entity, long timeTicks){
+	private void setLoveTime(TraitEntity entity, long timeTicks){
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 		pdc.set(this.loveTickKey, PersistentDataType.LONG, timeTicks);
 	}
 
-	private boolean hasLoveTime(LivingEntity entity){
+	private boolean hasLoveTime(TraitEntity entity){
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 		return pdc.has(this.loveTickKey);
 	}
 
-	private long getLoveTime(LivingEntity entity){
+	private long getLoveTime(TraitEntity entity){
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 		if(pdc.has(this.loveTickKey)){
 			return pdc.get(this.loveTickKey, PersistentDataType.LONG);
@@ -244,7 +245,7 @@ public class FertileTrait extends Trait {
 		return -1L;
 	}
 
-	private double getModifier(LivingEntity entity){
+	private double getModifier(TraitEntity entity){
 		double variation = this.getVariation(entity);
 		Expression exp = (variation >= 0) ? this.positiveExpression : this.negativeExpression;
 		return exp.setVariable("x", this.getVariation(entity)).evaluate();

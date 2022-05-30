@@ -1,17 +1,13 @@
 package com.github.longboyy.evolution.traits;
 
 import com.github.longboyy.evolution.Evolution;
-import com.github.longboyy.evolution.util.StringDoubleMap;
+import com.github.longboyy.evolution.util.pdc.StringDoubleMap;
 import com.google.common.collect.ImmutableSet;
-import net.kyori.adventure.key.Keyed;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,12 +34,12 @@ public abstract class Trait implements ITrait, Cloneable{
 	}
 
 	@Override
-	public double getVariation(LivingEntity entity) {
+	public double getVariation(TraitEntity entity) {
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 		NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
 		if(pdc.has(variationsKey)) {
 			Map<String, Double> variations = pdc.has(variationsKey)
-					? pdc.get(variationsKey, StringDoubleMap.getType()) : new HashMap<>();
+					? pdc.get(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP) : new HashMap<>();
 			if(variations.containsKey(this.getIdentifier())){
 				return variations.get(this.getIdentifier());
 			}
@@ -55,21 +51,21 @@ public abstract class Trait implements ITrait, Cloneable{
 	}
 
 	@Override
-	public boolean applyTrait(LivingEntity entity, double variation) {
+	public boolean applyTrait(TraitEntity entity, double variation) {
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 
 		NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
 		Map<String, Double> variations = pdc.has(variationsKey)
-				? pdc.get(variationsKey, StringDoubleMap.getType()) : new HashMap<>();
+				? pdc.get(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP) : new HashMap<>();
 
 		variations.put(this.getIdentifier(), variation);
 
-		pdc.set(variationsKey, StringDoubleMap.getType(), variations);
+		pdc.set(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP, variations);
 		return true;
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 
 		/*
 		TextComponent.Builder traitInfo = Component.text();

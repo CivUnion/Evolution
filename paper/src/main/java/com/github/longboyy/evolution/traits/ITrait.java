@@ -36,14 +36,14 @@ public interface ITrait {
 	 */
 	double getMaxVariation();
 
-	double getVariation(LivingEntity entity);
+	double getVariation(TraitEntity entity);
 
 	/**
 	 * Applies the trait to the entity. This process with overwrite it's current value
 	 */
-	boolean applyTrait(LivingEntity entity, double variation);
+	boolean applyTrait(TraitEntity entity, double variation);
 
 	void parseConfig(ConfigurationSection section);
 
-	TextComponent.Builder displayInfo(LivingEntity entity);
+	TextComponent.Builder displayInfo(TraitEntity entity);
 }

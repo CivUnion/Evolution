@@ -1,4 +1,4 @@
-package com.github.longboyy.evolution.util;
+package com.github.longboyy.evolution.util.pdc;
 
 import com.github.longboyy.evolution.Evolution;
 import org.bukkit.NamespacedKey;
@@ -9,12 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public class StringDoubleKeyEncoder implements PersistentDataType<NamespacedKey, String> {
-
-	private final Plugin plugin;
-
-	public StringDoubleKeyEncoder(Plugin plugin){
-		this.plugin = plugin;
-	}
 
 	@Override
 	public @NotNull Class<NamespacedKey> getPrimitiveType() {
@@ -28,7 +22,7 @@ public class StringDoubleKeyEncoder implements PersistentDataType<NamespacedKey,
 
 	@Override
 	public @NotNull NamespacedKey toPrimitive(@NotNull String complex, @NotNull PersistentDataAdapterContext context) {
-		return NamespacedKey.fromString(complex, plugin);
+		return NamespacedKey.fromString(complex, Evolution.getInstance());
 	}
 
 	@Override

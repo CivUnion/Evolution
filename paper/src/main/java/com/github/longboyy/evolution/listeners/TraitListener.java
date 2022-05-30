@@ -26,19 +26,15 @@ import java.util.function.Predicate;
 public class TraitListener implements Listener {
 
 	private final Evolution plugin;
-	private final TraitManager traitManager;
 
 	private final Map<Class<? extends Event>, Set<Consumer<Event>>> events;
 
 	//private Map<ITrait, Map<Class<? extends Event>, Consumer<Event>>> traitEvents;
 
-	public TraitListener(Evolution plugin, TraitManager manager){
+	public TraitListener(Evolution plugin){
 		this.plugin = plugin;
-		this.traitManager = manager;
-		//this.traitEvents = new HashMap<>();
 		this.events = new HashMap<>();
 		RegisteredListener registeredListener = new RegisteredListener(this, (listener, event) -> {
-			//this.plugin.info(String.format("Attempting to execute event '%s'", event.getEventName()));
 			onEvent(event);
 		}, EventPriority.NORMAL, this.plugin, false);
 
@@ -46,12 +42,6 @@ public class TraitListener implements Listener {
 			handler.register(registeredListener);
 			handler.bake();
 		}
-
-		/*
-		Bukkit.getPluginManager().registerEvent(EntityEvent.class, this, EventPriority.NORMAL, (listener, event) -> {
-			this.onEvent((EntityEvent) event);
-		}, this.plugin, false);
-		 */
 	}
 
 	public void registerEvent(Class<? extends Event> eventClass, Consumer<Event> eventConsumer){
@@ -63,31 +53,6 @@ public class TraitListener implements Listener {
 		classEvents.add(eventConsumer);
 	}
 
-	/*
-	public void registerEvent(ITrait trait, Class<? extends Event> eventClass, Consumer<Event> eventCallback){
-		if(!this.events.containsKey(trait)){
-			this.events.put(trait, new HashMap<>());
-		}
-
-		Map<Class<? extends Event>, Consumer<Event>> events = this.traitEvents.get(trait);
-		events.put(eventClass, eventCallback);
-	}
-	 */
-
-	/*
-	@EventHandler
-	public void onEntityMove(EntityMoveEvent event){
-		LivingEntity entity = event.getEntity();
-		Evolution.getInstance().info(String.format("Entity '%s'(%s[%s]) moved from %s to %s",
-				entity.getName(),
-				entity.getType(),
-				entity.getUniqueId(),
-				event.getFrom(),
-				event.getTo())
-		);
-	}
-	 */
-
 	public void onEvent(Event event){
 		if(this.events.containsKey(event.getClass())){
 			Set<Consumer<Event>> classEvents = this.events.get(event.getClass());
@@ -97,29 +62,5 @@ public class TraitListener implements Listener {
 				}
 			}
 		}
-
-		/*
-		if(event.getEntity() instanceof LivingEntity){
-			LivingEntity entity = (LivingEntity)event.getEntity();
-			ImmutableMap<ITrait, TraitType> traits = this.traitManager.getAllTraitsOf(entity);
-			if(traits == null){
-				return;
-			}
-			for(ITrait trait : traits.keySet()){
-
-				Map<Class<? extends Event>, Consumer<Event>> events = this.traitEvents.get(trait);
-				if(events != null && events.containsKey(event.getClass())){
-					Consumer<EntityEvent> e = events.get(event.getClass());
-					//this.plugin.info(String.format("Attempting to execute event '%s'", event.getClass()));
-					if(e != null){
-						this.plugin.info(String.format("Executing event '%s'", event.getClass()));
-						e.accept(event);
-					}
-				}
-
-			}
-		}
-		 */
-
 	}
 }

@@ -47,9 +47,9 @@ public class BoneTrait extends Trait {
 		listener.registerEvent(EntityDeathEvent.class, _event -> {
 			EntityDeathEvent event = (EntityDeathEvent) _event;
 
-			LivingEntity entity = event.getEntity();
+			TraitEntity entity = new TraitEntity(event.getEntity());
 
-			if(!this.manager.hasTrait(entity, this, TraitType.ACTIVE)){
+			if(!entity.hasTrait(this, TraitType.ACTIVE)){
 				return;
 			}
 
@@ -63,7 +63,7 @@ public class BoneTrait extends Trait {
 		});
 	}
 
-	private double getMultiplier(LivingEntity entity){
+	private double getMultiplier(TraitEntity entity){
 		SicklyTrait sicklyTrait = this.manager.getTrait(SicklyTrait.class);
 		if(sicklyTrait != null){
 
@@ -78,7 +78,7 @@ public class BoneTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		double realAmount = MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue);
 		int amount = Math.toIntExact(Math.round(realAmount));

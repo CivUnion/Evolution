@@ -2,11 +2,17 @@ package com.github.longboyy.evolution.util;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.traits.ITrait;
+import com.github.longboyy.evolution.traits.TraitEntity;
 import com.github.longboyy.evolution.traits.TraitManager;
+import com.github.longboyy.evolution.traits.TraitType;
 import com.github.longboyy.evolution.traits.impl.*;
 import com.google.common.collect.ImmutableSet;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
 import vg.civcraft.mc.civmodcore.inventory.items.ItemUtils;
@@ -62,6 +68,25 @@ public class TraitUtils {
 		return newMap;
 	}
 
+	public static ImmutableSet<TraitEntity> getEntitiesWithTrait(ITrait trait, TraitType type){
+		TraitManager manager = Evolution.getInstance().getTraitManager();
+		Set<TraitEntity> entities = new HashSet<>();
+		for(World world : Bukkit.getWorlds()){
+			for(Entity ent : world.getEntities()){
+				if(!(ent instanceof LivingEntity)){
+					continue;
+				}
+				TraitEntity entity = new TraitEntity(ent);
+				if(!entity.hasTrait(trait, type)){
+					continue;
+				}
+				entities.add(entity);
+			}
+		}
+
+		return ImmutableSet.copyOf(entities);
+	}
+
 	public static void registerDefaultTraits(TraitManager manager){
 		// Husbandry Traits
 		manager.registerTrait(new BoneTrait());
@@ -75,6 +100,7 @@ public class TraitUtils {
 		manager.registerTrait(new SicklyTrait());
 	}
 
+	/*
 	public static ImmutableSet<ITrait> generateUniqueTraits(ImmutableSet<ITrait> traits, int amount){
 		BiasedRandomPicker<ITrait> picker = Evolution.getInstance().getTraitManager().getRandomPicker(traits);
 
@@ -94,5 +120,6 @@ public class TraitUtils {
 
 		return ImmutableSet.copyOf(pickedTraits);
 	}
+	 */
 
 }
