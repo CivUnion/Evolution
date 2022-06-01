@@ -42,7 +42,7 @@ subprojects {
 		repositories {
 			maven {
 				name = "GitHubPackages"
-				url = uri("https://maven.pkg.github.com/CivMC/FactoryMod")
+				url = uri("https://github.com/CivUnion/Evolution")
 				credentials {
 					username = System.getenv("GITHUB_ACTOR")
 					password = System.getenv("GITHUB_TOKEN")

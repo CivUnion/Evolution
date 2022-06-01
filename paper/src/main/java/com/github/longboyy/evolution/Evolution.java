@@ -3,15 +3,12 @@ package com.github.longboyy.evolution;
 import com.github.longboyy.evolution.commands.EvolutionCommandManager;
 import com.github.longboyy.evolution.listeners.EntityListener;
 import com.github.longboyy.evolution.listeners.PlayerListener;
-import com.github.longboyy.evolution.traits.ITrait;
+import com.github.longboyy.evolution.traits.TraitLogicHandler;
 import com.github.longboyy.evolution.traits.TraitManager;
-import com.github.longboyy.evolution.traits.impl.BoneTrait;
-import com.github.longboyy.evolution.traits.impl.HealthTrait;
-import com.github.longboyy.evolution.util.StringDoubleMap;
+import com.github.longboyy.evolution.util.pdc.StringDoubleMap;
 import com.github.longboyy.evolution.util.TraitUtils;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import vg.civcraft.mc.civmodcore.ACivMod;
 
 public class Evolution extends ACivMod {
@@ -42,15 +39,14 @@ public class Evolution extends ACivMod {
 	public void onEnable() {
 		super.onEnable();
 		instance = this;
-		StringDoubleMap.initType(this);
+		this.traitManager = new TraitManager(this);
 		this.configParser = new EvolutionConfigParser(this);
 		if(!this.configParser.parse()){
 			Bukkit.shutdown();
 			return;
 		}
 
-		this.traitManager = new TraitManager(this);
-		this.traitManager.parseConfig(this.configParser.getConfig());
+		//this.traitManager.parseConfig(this.configParser.getConfig());
 		TraitUtils.registerDefaultTraits(this.traitManager);
 
 		this.registerListener(new EntityListener(this));
@@ -65,10 +61,10 @@ public class Evolution extends ACivMod {
 	}
 
 	public EvolutionConfigParser getConfigParser(){
-		return configParser;
+		return this.configParser;
 	}
 
 	public TraitManager getTraitManager(){
-		return traitManager;
+		return this.traitManager;
 	}
 }

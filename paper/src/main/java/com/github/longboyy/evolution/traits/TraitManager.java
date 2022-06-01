@@ -2,29 +2,17 @@ package com.github.longboyy.evolution.traits;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.util.TraitUtils;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import com.github.longboyy.evolution.listeners.TraitListener;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
-import vg.civcraft.mc.civmodcore.pdc.extensions.PersistentDataContainerExtensions;
-import vg.civcraft.mc.civmodcore.utilities.BiasedRandomPicker;
-import vg.civcraft.mc.civmodcore.utilities.MoreMath;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TraitManager {
 
 	//private final Map<TraitCategory, Set<ITrait>> traitByCategory;
 
 	private final Evolution plugin;
-	private final TraitListener listener;
 
 	private final Set<ITrait> traits;
 	private final Map<TraitCategory, Set<ITrait>> traitsByCategory;
@@ -34,8 +22,6 @@ public class TraitManager {
 
 	private ConfigurationSection traitSection = null;
 
-	private final Map<String, Object> configOptions;
-
 	public TraitManager(Evolution plugin){
 		this.plugin = plugin;
 		this.traits = new HashSet<>();
@@ -43,59 +29,15 @@ public class TraitManager {
 		this.traitsByClass = new HashMap<>();
 		this.traitById = new HashMap<>();
 		this.traitsByEntityType = new HashMap<>();
-		this.listener = new TraitListener(this.plugin, this);
-
-		/*
-		ConfigurationSection section = this.plugin.getConfigParser().getConfig();
-		this.traitSection = section.isConfigurationSection("traits") ? section.getConfigurationSection("traits") : null;
-		 */
-
-		this.configOptions = new HashMap<>();
-	}
-
-	public <T> T getConfigOption(String key){
-		if(!this.configOptions.containsKey(key)){
-			return null;
-		}
-
-		Object rawValue = this.configOptions.get(key);
-
-		try {
-			@SuppressWarnings("unchecked")
-			T value = (T) rawValue;
-			return value;
-		}catch(Exception e){
-			return null;
-		}
-	}
-
-	public <T> T getConfigOption(String key, T defaultValue){
-		T value = this.getConfigOption(key);
-		return value == null ? defaultValue : value;
 	}
 
 	public void parseConfig(ConfigurationSection section){
-		if(section == null){
-			return;
+		if(section != null){
+			this.traitSection = section;
 		}
 
-		this.traitSection = section.isConfigurationSection("traits") ? section.getConfigurationSection("traits") : null;
-		if(section.isConfigurationSection("settings")){
-			ConfigurationSection current = section.getConfigurationSection("settings");
-			for(String key : current.getKeys(false)){
-				Object val = current.get(key);
-				if(val == null){
-					continue;
-				}
-				this.configOptions.put(key, val);
-			}
-		}
-
-		//.getConfigurationSection("settings")
-	}
-
-	public TraitListener getListener(){
-		return this.listener;
+		this.clearTraits();
+		TraitUtils.registerDefaultTraits(this);
 	}
 
 	public void registerTrait(ITrait trait){
@@ -114,6 +56,10 @@ public class TraitManager {
 				ConfigurationSection section = this.traitSection.getConfigurationSection(trait.getIdentifier());
 				trait.parseConfig(section);
 			}
+		}
+
+		if(!trait.isEnabled()){
+			return;
 		}
 
 		this.traits.add(trait);
@@ -136,8 +82,50 @@ public class TraitManager {
 			typeTraits.add(trait);
 		}
 
+		if(trait instanceof ListenerTrait){
+			this.plugin.registerListener((ListenerTrait)trait);
+		}
+
 	}
 
+	public ITrait getTrait(String id){
+		return this.traitById.get(id);
+	}
+
+	public <T extends ITrait> T getTrait(Class<? extends T> clazz){
+		ITrait trait = this.traitsByClass.get(clazz);
+		try{
+			return (T)trait;
+		}catch(Exception e){
+			return null;
+		}
+	}
+
+	public ImmutableSet<ITrait> getTraits(EntityType type){
+		Set<ITrait> traits = this.traitsByEntityType.get(type);
+		if(traits == null){
+			return ImmutableSet.copyOf(new HashSet<>());
+		}
+		return ImmutableSet.copyOf(traits);
+	}
+
+	public ImmutableSet<ITrait> getTraits(TraitCategory category){
+		return ImmutableSet.copyOf(this.traitsByCategory.get(category));
+	}
+
+	public ImmutableSet<ITrait> getTraits(){
+		return ImmutableSet.copyOf(this.traits);
+	}
+
+	private void clearTraits(){
+		this.traits.clear();
+		this.traitById.clear();
+		this.traitsByClass.clear();
+		this.traitsByCategory.clear();
+		this.traitsByEntityType.clear();
+	}
+
+	/*
 	public ImmutableSet<LivingEntity> getEntitiesWith(ITrait trait){
 		Set<LivingEntity> resultSet = new HashSet<>();
 		for(World world : Bukkit.getWorlds()){
@@ -173,35 +161,6 @@ public class TraitManager {
 
 	public boolean hasTrait(LivingEntity entity, ITrait trait){
 		return this.hasTrait(entity, trait, TraitType.ACTIVE) || this.hasTrait(entity, trait, TraitType.INACTIVE);
-	}
-
-	public ITrait getTrait(String id){
-		return this.traitById.get(id);
-	}
-
-	public <T extends ITrait> T getTrait(Class<? extends T> clazz){
-		ITrait trait = this.traitsByClass.get(clazz);
-		try{
-			return (T)trait;
-		}catch(Exception e){
-			return null;
-		}
-	}
-
-	public ImmutableSet<ITrait> getTraitsByEntityType(EntityType type){
-		Set<ITrait> traits = this.traitsByEntityType.get(type);
-		if(traits == null){
-			return ImmutableSet.copyOf(new HashSet<>());
-		}
-		return ImmutableSet.copyOf(traits);
-	}
-
-	public ImmutableSet<ITrait> getTraitsByCategory(TraitCategory category){
-		return ImmutableSet.copyOf(this.traitsByCategory.get(category));
-	}
-
-	public ImmutableSet<ITrait> getTraits(){
-		return ImmutableSet.copyOf(this.traits);
 	}
 
 	public ImmutableSet<ITrait> getActiveTraitsOf(LivingEntity entity){
@@ -533,6 +492,7 @@ public class TraitManager {
 		PersistentDataContainerExtensions.setList(pdc, type.getKey(), PersistentDataType.STRING, traitsArray);
 		return true;
 	}
+	 */
 }
 
 /*

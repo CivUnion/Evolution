@@ -14,8 +14,6 @@ public interface ITrait {
 	 */
 	String getIdentifier();
 
-	String getPrettyName();
-
 	/**
 	 * The category that this trait is
 	 */
@@ -27,23 +25,27 @@ public interface ITrait {
 	ImmutableSet<EntityType> getAllowedTypes();
 
 	/**
-	 * The weight of the trait in the genepool. These weight values are used to decide how rare a trait is.
-	 */
-	double getWeight();
-
-	/**
 	 * The maximum amount of variation +/- per generation.
 	 */
 	double getMaxVariation();
 
-	double getVariation(LivingEntity entity);
+	boolean isEnabled();
+
+	void parseConfig(ConfigurationSection section);
+
+	String getPrettyName(TraitEntity entity);
+
+	double getVariation(TraitEntity entity);
+
+	/**
+	 * The weight of the trait in the genepool. These weight values are used to decide how rare a trait is.
+	 */
+	double getWeight(TraitEntity entity);
 
 	/**
 	 * Applies the trait to the entity. This process with overwrite it's current value
 	 */
-	boolean applyTrait(LivingEntity entity, double variation);
+	boolean applyTrait(TraitEntity entity, double variation);
 
-	void parseConfig(ConfigurationSection section);
-
-	TextComponent.Builder displayInfo(LivingEntity entity);
+	TextComponent.Builder displayInfo(TraitEntity entity);
 }

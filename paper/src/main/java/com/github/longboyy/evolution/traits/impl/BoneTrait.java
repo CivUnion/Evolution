@@ -1,26 +1,21 @@
 package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
-import com.github.longboyy.evolution.listeners.TraitListener;
 import com.github.longboyy.evolution.traits.*;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.objecthunter.exp4j.Expression;
-import net.objecthunter.exp4j.ExpressionBuilder;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
 import vg.civcraft.mc.civmodcore.utilities.MoreMath;
-
-import java.util.List;
 
 public class BoneTrait extends Trait {
 
@@ -32,7 +27,7 @@ public class BoneTrait extends Trait {
 	private final TraitManager manager;
 
 	public BoneTrait() {
-		super("bones", 1D, TraitCategory.HUSBANDRY, ImmutableSet.copyOf(new EntityType[]{
+		super("bones", TraitCategory.HUSBANDRY, ImmutableSet.copyOf(new EntityType[]{
 			EntityType.COW,
 			EntityType.SHEEP,
 			EntityType.PIG,
@@ -43,13 +38,14 @@ public class BoneTrait extends Trait {
 
 		this.manager = Evolution.getInstance().getTraitManager();
 
+		/*
 		TraitListener listener = this.manager.getListener();
 		listener.registerEvent(EntityDeathEvent.class, _event -> {
 			EntityDeathEvent event = (EntityDeathEvent) _event;
 
-			LivingEntity entity = event.getEntity();
+			TraitEntity entity = new TraitEntity(event.getEntity());
 
-			if(!this.manager.hasTrait(entity, this, TraitType.ACTIVE)){
+			if(!entity.hasTrait(this, TraitType.ACTIVE)){
 				return;
 			}
 
@@ -61,9 +57,26 @@ public class BoneTrait extends Trait {
 			event.getDrops().addAll(dropMap.getItemStackRepresentation());
 			//dropMap.getItemStackRepresentation().forEach(event.getDrops()::add);
 		});
+		 */
 	}
 
-	private double getMultiplier(LivingEntity entity){
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onDeath(EntityDeathEvent event){
+		TraitEntity entity = new TraitEntity(event.getEntity());
+
+		if(!entity.hasTrait(this, TraitType.ACTIVE)){
+			return;
+		}
+
+		ItemStack item = new ItemStack(this.boneItem);
+		item.setAmount(Math.toIntExact(Math.round(MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue))));
+		ItemMap dropMap = TraitUtils.addItem(new ItemMap(event.getDrops()), item);
+
+		event.getDrops().clear();
+		event.getDrops().addAll(dropMap.getItemStackRepresentation());
+	}
+
+	private double getMultiplier(TraitEntity entity){
 		SicklyTrait sicklyTrait = this.manager.getTrait(SicklyTrait.class);
 		if(sicklyTrait != null){
 
@@ -78,7 +91,7 @@ public class BoneTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		double realAmount = MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue);
 		int amount = Math.toIntExact(Math.round(realAmount));
@@ -90,7 +103,7 @@ public class BoneTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Bones";
 	}
 
@@ -101,9 +114,15 @@ public class BoneTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
+		super.parseConfig(section);
 		if(section != null){
 			String exp = section.getString("expression", "(log(1+x)/log(2))^0.7");
 			this.variationExpression = TraitUtils.createVariationExpression(exp);
 		}
+	}
+
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
 	}
 }

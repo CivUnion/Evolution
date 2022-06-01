@@ -5,25 +5,14 @@ import co.aikar.commands.annotation.*;
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.EvolutionConfigParser;
 import com.github.longboyy.evolution.traits.ITrait;
+import com.github.longboyy.evolution.traits.TraitEntity;
 import com.github.longboyy.evolution.traits.TraitManager;
 import com.github.longboyy.evolution.traits.TraitType;
-import com.github.longboyy.evolution.util.StringDoubleMap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
-import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataContainer;
-import vg.civcraft.mc.civmodcore.utilities.MoreMath;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @CommandAlias("evo|evolution")
 @CommandPermission("evo.op")
@@ -39,11 +28,11 @@ public class EvolutionCommand extends BaseCommand {
 
 	@Subcommand("reload")
 	@Description("Reloads the config for Evolution")
-	public void onReload(){
+	public void onReload(Player player){
 		EvolutionConfigParser configParser = this.plugin.getConfigParser();
 		if(configParser.parse()){
-			ConfigurationSection section = configParser.getConfig();
-			this.manager.parseConfig(section);
+			//ConfigurationSection section = configParser.getConfig();
+			//this.manager.parseConfig(section);
 		}
 	}
 
@@ -64,13 +53,20 @@ public class EvolutionCommand extends BaseCommand {
 			return;
 		}
 
-		LivingEntity entity = (LivingEntity) rawEntity;
-		if(this.manager.hasTrait(entity, trait)){
+		//LivingEntity entity = (LivingEntity) rawEntity;
+		TraitEntity entity = new TraitEntity(rawEntity);
+		if(entity.hasTrait(trait)){
 			player.sendMessage(Component.text("This entity already has that trait!", Evolution.FAILURE_RED));
 			return;
 		}
 
-		ImmutableMap<ITrait, TraitType> traits = manager.getAllTraitsOf(entity);
+		entity.addTrait(trait, active ? TraitType.ACTIVE : TraitType.INACTIVE);
+		if(active){
+			trait.applyTrait(entity, entity.getVariation(trait));
+		}
+
+		/*
+		ImmutableMap<ITrait, TraitType> traits = entity.getTraits();
 		if(traits == null){
 			return;
 		}
@@ -88,20 +84,6 @@ public class EvolutionCommand extends BaseCommand {
 			this.manager.setActiveTraitsOf(entity, ImmutableSet.copyOf(finalTraits));
 			trait.applyTrait(entity, trait.getVariation(entity));
 		}else{
-			this.manager.setInactiveTraitsOf(entity, ImmutableSet.copyOf(finalTraits));
-		}
-
-		/*
-		if(active){
-			newTraits.removeIf(entry -> entry.getValue() != TraitType.ACTIVE);
-			Set<ITrait> finalTraits = newTraits.stream().map(entry -> entry.getKey()).collect(Collectors.toSet());
-			finalTraits.add(trait);
-			this.manager.setActiveTraitsOf(entity, ImmutableSet.copyOf(finalTraits));
-			trait.applyTrait(entity, trait.getVariation(entity));
-		}else{
-			newTraits.removeIf(entry -> entry.getValue() != TraitType.INACTIVE);
-			Set<ITrait> finalTraits = newTraits.stream().map(entry -> entry.getKey()).collect(Collectors.toSet());
-			finalTraits.add(trait);
 			this.manager.setInactiveTraitsOf(entity, ImmutableSet.copyOf(finalTraits));
 		}
 		 */
@@ -125,12 +107,16 @@ public class EvolutionCommand extends BaseCommand {
 			return;
 		}
 
-		LivingEntity entity = (LivingEntity) rawEntity;
-		if(!this.manager.hasTrait(entity, trait)){
+		//LivingEntity entity = (LivingEntity) rawEntity;
+		TraitEntity entity = new TraitEntity(rawEntity);
+		if(!entity.hasTrait(trait)){
 			player.sendMessage(Component.text("This entity does not have that trait!", Evolution.FAILURE_RED));
 			return;
 		}
 
+		entity.removeTrait(trait);
+
+		/*
 		ImmutableMap<ITrait, TraitType> traits = manager.getAllTraitsOf(entity);
 		if(traits == null){
 			return;
@@ -145,6 +131,7 @@ public class EvolutionCommand extends BaseCommand {
 			newTraits.removeIf(entry -> entry.getValue() != TraitType.INACTIVE || entry.getKey().equals(trait));
 			this.manager.setInactiveTraitsOf(entity, ImmutableSet.copyOf(newTraits.stream().map(entry -> entry.getKey()).collect(Collectors.toSet())));
 		}
+		 */
 		player.sendMessage(Component.text("Successfully removed trait from entity.", Evolution.SUCCESS_GREEN));
 	}
 
@@ -166,14 +153,20 @@ public class EvolutionCommand extends BaseCommand {
 			return;
 		}
 
-		LivingEntity entity = (LivingEntity) rawEntity;
-		if(!manager.hasTrait(entity, trait)){
+		//LivingEntity entity = (LivingEntity) rawEntity;
+		TraitEntity entity = new TraitEntity(rawEntity);
+		if(!entity.hasTrait(trait)){
 			player.sendMessage(Component.text("This entity does not have that trait!", Evolution.FAILURE_RED));
 			return;
 		}
 
-		variation = MoreMath.clamp(variation, -1, 1);
+		//variation = MoreMath.clamp(variation, -1, 1);
+		entity.setVariation(trait, variation);
+		if(entity.getTraitType(trait) == TraitType.ACTIVE){
+			trait.applyTrait(entity, variation);
+		}
 
+		/*
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 
 		NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
@@ -184,6 +177,7 @@ public class EvolutionCommand extends BaseCommand {
 
 		pdc.set(variationsKey, StringDoubleMap.getType(), variations);
 		trait.applyTrait(entity, variation);
+		 */
 		player.sendMessage(Component.text("Successfully set variation of entity.", Evolution.SUCCESS_GREEN));
 	}
 

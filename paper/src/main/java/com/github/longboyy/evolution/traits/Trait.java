@@ -1,17 +1,15 @@
 package com.github.longboyy.evolution.traits;
 
 import com.github.longboyy.evolution.Evolution;
-import com.github.longboyy.evolution.util.StringDoubleMap;
+import com.github.longboyy.evolution.events.ApplyTraitEvent;
+import com.github.longboyy.evolution.util.pdc.StringDoubleMap;
 import com.google.common.collect.ImmutableSet;
-import net.kyori.adventure.key.Keyed;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,15 +20,15 @@ public abstract class Trait implements ITrait, Cloneable{
 
 	private static final Random RANDOM = new Random();
 	protected final String identifier;
-	protected final double weight;
 	protected final TraitCategory category;
 	protected final ImmutableSet<EntityType> allowedTypes;
 
+	protected boolean enabled = true;
+
 	//private final NamespacedKey variationKey;
 
-	public Trait(String identifier, double weight, TraitCategory category, ImmutableSet<EntityType> allowedTypes){
+	public Trait(String identifier, TraitCategory category, ImmutableSet<EntityType> allowedTypes){
 		this.identifier = identifier;
-		this.weight = weight;
 		this.category = category;
 		this.allowedTypes = allowedTypes;
 
@@ -38,12 +36,12 @@ public abstract class Trait implements ITrait, Cloneable{
 	}
 
 	@Override
-	public double getVariation(LivingEntity entity) {
+	public double getVariation(TraitEntity entity) {
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 		NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
 		if(pdc.has(variationsKey)) {
 			Map<String, Double> variations = pdc.has(variationsKey)
-					? pdc.get(variationsKey, StringDoubleMap.getType()) : new HashMap<>();
+					? pdc.get(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP) : new HashMap<>();
 			if(variations.containsKey(this.getIdentifier())){
 				return variations.get(this.getIdentifier());
 			}
@@ -55,41 +53,37 @@ public abstract class Trait implements ITrait, Cloneable{
 	}
 
 	@Override
-	public boolean applyTrait(LivingEntity entity, double variation) {
+	public boolean applyTrait(TraitEntity entity, double variation) {
+
+		ApplyTraitEvent ate = new ApplyTraitEvent(entity, this, variation);
+		if(!ate.callEvent()){
+			return false;
+		}
+
+		//entity.setVariation(this, ate.getVariation());
+
+		/*
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 
 		NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
 		Map<String, Double> variations = pdc.has(variationsKey)
-				? pdc.get(variationsKey, StringDoubleMap.getType()) : new HashMap<>();
+				? pdc.get(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP) : new HashMap<>();
 
 		variations.put(this.getIdentifier(), variation);
 
-		pdc.set(variationsKey, StringDoubleMap.getType(), variations);
+		pdc.set(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP, variations);
+		 */
 		return true;
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
-
-		/*
-		TextComponent.Builder traitInfo = Component.text();
-		traitInfo.append(Component.text("Variation:"));
-		traitInfo.append(Component.space());
-		traitInfo.append(Component.text(String.format("%1.5f", this.getVariation(entity))));
-		builder.hoverEvent(HoverEvent.showText(traitInfo.asComponent()).value());
-		 */
-
-
-		//builder.append(Component.text("Variation:"));
-		//builder.append(Component.space());
-		//builder.append(Component.text(String.format("%1.5f", variation), variation >= 0 ? Evolution.SUCCESS_GREEN : Evolution.FAILURE_RED));
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		double variation = this.getVariation(entity);
 
 		TextComponent.Builder traitInfo = Component.text();
 		traitInfo.append(Component.text("Variation:"));
 		traitInfo.append(Component.space());
 		traitInfo.append(Component.text(String.format("%1.5f", this.getVariation(entity)), variation >= 0 ? Evolution.SUCCESS_GREEN : Evolution.FAILURE_RED));
-		//builder.hoverEvent(HoverEvent.showText(traitInfo.asComponent()).value());
 
 		return traitInfo;
 	}
@@ -110,8 +104,17 @@ public abstract class Trait implements ITrait, Cloneable{
 	}
 
 	@Override
-	public double getWeight() {
-		return this.weight;
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	@Override
+	public void parseConfig(ConfigurationSection section) {
+		if(section == null){
+			return;
+		}
+
+		this.enabled = section.getBoolean("enabled", true);
 	}
 
 	@Override

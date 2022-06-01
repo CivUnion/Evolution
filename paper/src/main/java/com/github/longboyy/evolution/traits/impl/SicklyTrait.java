@@ -2,6 +2,7 @@ package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.traits.*;
+import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -10,12 +11,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.checkerframework.checker.units.qual.C;
 import vg.civcraft.mc.civmodcore.utilities.MoreMath;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,7 +32,7 @@ public class SicklyTrait extends Trait {
 	private TraitManager manager;
 
 	public SicklyTrait() {
-		super("sickly", 1D, TraitCategory.ILLNESS, ImmutableSet.copyOf(new EntityType[]{
+		super("sickly", TraitCategory.ILLNESS, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.COW,
 				EntityType.SHEEP,
 				EntityType.PIG,
@@ -48,29 +45,31 @@ public class SicklyTrait extends Trait {
 		this.manager = Evolution.getInstance().getTraitManager();
 
 		this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Evolution.getInstance(), () -> {
-			ImmutableSet<LivingEntity> entities = Evolution.getInstance().getTraitManager().getEntitiesWith(this, TraitType.ACTIVE);
-			for(LivingEntity entity : entities){
+			//ImmutableSet<LivingEntity> entities = Evolution.getInstance().getTraitManager().getEntitiesWith(this, TraitType.ACTIVE);
+			ImmutableSet<TraitEntity> entities = TraitUtils.getEntitiesWithTrait(this, TraitType.ACTIVE);
+			for(TraitEntity entity : entities){
 				this.getDownWithTheSickness(entity);
 			}
 		}, 0L, this.sicknessInterval);
 	}
 
 	// Oh, ah, ah, ah, ah
-	private void getDownWithTheSickness(LivingEntity entity){
-		List<Entity> entityList = entity.getNearbyEntities(this.sicknessRange, this.sicknessRange, this.sicknessRange);
-		Set<LivingEntity> entities = entityList.stream()
-				.filter(ent -> ent instanceof LivingEntity && manager.getTraitsByEntityType(ent.getType()).contains(this))
-				.map(ent -> (LivingEntity)ent)
+	private void getDownWithTheSickness(TraitEntity entity){
+		List<Entity> entityList = entity.entity.getNearbyEntities(this.sicknessRange, this.sicknessRange, this.sicknessRange);
+		Set<TraitEntity> entities = entityList.stream()
+				.filter(ent -> ent instanceof LivingEntity && manager.getTraits(ent.getType()).contains(this))
+				.map(ent -> new TraitEntity(ent))
 				.collect(Collectors.toSet());
 
 		double selfVariation = MoreMath.clamp(this.getVariation(entity), 0D, 1D);
 
-		for(LivingEntity ent : entities){
-			if(manager.hasTrait(ent, this)){
+		for(TraitEntity ent : entities){
+			if(ent.hasTrait(this)){
 				continue;
 			}
 
-			if(!manager.getTraitsByEntityType(ent.getType()).contains(this)){
+			//do we really need this?
+			if(!manager.getTraits(ent.getType()).contains(this)){
 				return;
 			}
 
@@ -89,16 +88,7 @@ public class SicklyTrait extends Trait {
 						entity.getName(),
 						entity.getType(),
 						entity.getUniqueId()));
-				ImmutableSet<ITrait> entTraits = TraitType.ACTIVE.getTraitsOf(entity);
-				Set<ITrait> newEntTraits;
-				if(entTraits == null){
-					newEntTraits = new HashSet<>();
-				}else{
-					newEntTraits = new HashSet<>(entTraits);
-				}
-
-				newEntTraits.add(this);
-				manager.setActiveTraitsOf(ent, ImmutableSet.copyOf(newEntTraits));
+				ent.addTrait(this, TraitType.ACTIVE);
 				this.applyTrait(ent, (this.getVariation(entity)+this.getVariation(ent))*0.5D);
 			}
 		}
@@ -106,7 +96,7 @@ public class SicklyTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		newBuilder.append(Component.newline());
 		newBuilder.append(Component.text("Spread chance:"));
@@ -120,7 +110,7 @@ public class SicklyTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Sickly";
 	}
 
@@ -131,5 +121,11 @@ public class SicklyTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
+		super.parseConfig(section);
+	}
+
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
 	}
 }

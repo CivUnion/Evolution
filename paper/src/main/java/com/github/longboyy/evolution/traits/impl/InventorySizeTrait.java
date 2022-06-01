@@ -3,12 +3,14 @@ package com.github.longboyy.evolution.traits.impl;
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.traits.Trait;
 import com.github.longboyy.evolution.traits.TraitCategory;
+import com.github.longboyy.evolution.traits.TraitEntity;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.objecthunter.exp4j.Expression;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Donkey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Llama;
@@ -19,13 +21,13 @@ public class InventorySizeTrait extends Trait {
 	private Expression variationExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
 
 	public InventorySizeTrait() {
-		super("inv_size", 1D, TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
+		super("inv_size", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.LLAMA
 		}));
 	}
 
 	@Override
-	public boolean applyTrait(LivingEntity entity, double variation) {
+	public boolean applyTrait(TraitEntity entity, double variation) {
 		boolean success = super.applyTrait(entity, variation);
 		if(success){
 			int columns = this.getInventoryColumns(entity);
@@ -38,7 +40,7 @@ public class InventorySizeTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		newBuilder.append(Component.newline());
 		newBuilder.append(Component.text("Columns:"));
@@ -50,7 +52,7 @@ public class InventorySizeTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Inventory Size";
 	}
 
@@ -61,14 +63,19 @@ public class InventorySizeTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
-
+		super.parseConfig(section);
 	}
 
-	private int getInventoryColumns(LivingEntity entity){
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
+	}
+
+	private int getInventoryColumns(TraitEntity entity){
 		return Math.toIntExact(Math.round(1D + MoreMath.clamp(4D * this.getModifier(entity), 0D, 4D)));
 	}
 
-	private double getModifier(LivingEntity entity){
+	private double getModifier(TraitEntity entity){
 		double variation = this.getVariation(entity);
 		if(variation >= 0D){
 			return variationExpression.setVariable("x", variation).evaluate();

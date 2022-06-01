@@ -2,6 +2,7 @@ package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.traits.Trait;
 import com.github.longboyy.evolution.traits.TraitCategory;
+import com.github.longboyy.evolution.traits.TraitEntity;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
@@ -27,7 +28,7 @@ public class SpeedTrait extends Trait {
 	private Expression negativeExpression = TraitUtils.createVariationExpression("-(log(1-x)/log(2))^0.7");
 
 	public SpeedTrait() {
-		super("speed", 1D, TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
+		super("speed", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.HORSE,
 				EntityType.MULE,
 				EntityType.DONKEY,
@@ -40,7 +41,7 @@ public class SpeedTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		newBuilder.append(Component.newline());
 		newBuilder.append(Component.text("Speed:"));
@@ -52,7 +53,7 @@ public class SpeedTrait extends Trait {
 	}
 
 	@Override
-	public boolean applyTrait(LivingEntity entity, double variation) {
+	public boolean applyTrait(TraitEntity entity, double variation) {
 		boolean success = super.applyTrait(entity, variation);
 		if(success){
 			AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
@@ -95,7 +96,7 @@ public class SpeedTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Speed";
 	}
 
@@ -106,14 +107,19 @@ public class SpeedTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
+		super.parseConfig(section);
+	}
 
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
 	}
 
 	private double bpsToInternal(double bps){
 		return bps / 43.17D;
 	}
 
-	private double getExtraSpeed(LivingEntity entity, double variation){
+	private double getExtraSpeed(TraitEntity entity, double variation){
 		double modifiedSpeed = this.maxSpeedMap.getOrDefault(entity.getType(), defaultValue);
 
 		if(variation >= 0){

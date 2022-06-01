@@ -1,24 +1,17 @@
 package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
-import com.github.longboyy.evolution.listeners.TraitListener;
 import com.github.longboyy.evolution.traits.*;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.objecthunter.exp4j.Expression;
-import net.objecthunter.exp4j.ExpressionBuilder;
-import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.meta.ItemMeta;
-import vg.civcraft.mc.civmodcore.utilities.MoreMath;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +25,7 @@ public class HealthTrait extends Trait {
 	private Expression negativeExpression = TraitUtils.createVariationExpression("-(log(1-x)/log(2))^0.7");
 
 	public HealthTrait() {
-		super("health", 1D, TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
+		super("health", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.COW,
 				EntityType.SHEEP,
 				EntityType.PIG,
@@ -46,12 +39,12 @@ public class HealthTrait extends Trait {
 			this.healthMap.put(type, defaultValue);
 		});
 
-		TraitListener listener = Evolution.getInstance().getTraitManager().getListener();
+		//TraitListener listener = Evolution.getInstance().getTraitManager().getListener();
 		//listener.registerEvent(this, );
 	}
 
 	@Override
-	public boolean applyTrait(LivingEntity entity, double variation){
+	public boolean applyTrait(TraitEntity entity, double variation){
 		boolean success = super.applyTrait(entity, variation);
 		if(success){
 			AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
@@ -104,7 +97,7 @@ public class HealthTrait extends Trait {
 	}
 
 	@Override
-	public TextComponent.Builder displayInfo(LivingEntity entity) {
+	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		//int amount = Math.toIntExact(Math.round(MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue)));
 		//newBuilder.hoverEvent(HoverEvent.showItem(Material.BONE.getKey(), amount, null));
@@ -125,7 +118,7 @@ public class HealthTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Health";
 	}
 
@@ -136,10 +129,15 @@ public class HealthTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
-
+		super.parseConfig(section);
 	}
 
-	private double getExtraHealth(LivingEntity entity){
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
+	}
+
+	private double getExtraHealth(TraitEntity entity){
 		AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 		if(attribute == null){
 			return 0D;
@@ -154,7 +152,7 @@ public class HealthTrait extends Trait {
 		return 0D;
 	}
 
-	private double getExtraHealth(LivingEntity entity, double variation){
+	private double getExtraHealth(TraitEntity entity, double variation){
 		double modifiedHealth = this.healthMap.getOrDefault(entity.getType(), defaultValue);
 
 		if(variation >= 0){

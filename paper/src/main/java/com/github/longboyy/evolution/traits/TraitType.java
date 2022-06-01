@@ -3,29 +3,28 @@ package com.github.longboyy.evolution.traits;
 import com.github.longboyy.evolution.Evolution;
 import com.google.common.collect.ImmutableSet;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.LivingEntity;
-
 public enum TraitType {
 
-	ACTIVE(NamespacedKey.fromString("active_traits", Evolution.getInstance())),
-	INACTIVE(NamespacedKey.fromString("inactive_traits", Evolution.getInstance()));
+	ACTIVE(NamespacedKey.fromString("active_traits", Evolution.getInstance()), "Active"),
+	INACTIVE(NamespacedKey.fromString("inactive_traits", Evolution.getInstance()), "Inactive");
 
-	private NamespacedKey key;
+	private final NamespacedKey key;
+	private final String name;
 
-	TraitType(NamespacedKey key){
+	TraitType(NamespacedKey key, String name){
 		this.key = key;
+		this.name = name;
 	}
 
 	public NamespacedKey getKey(){
 		return this.key;
 	}
+	public String getName(){
+		return this.name;
+	}
 
-	public ImmutableSet<ITrait> getTraitsOf(LivingEntity entity){
-		if(this == ACTIVE) {
-			return Evolution.getInstance().getTraitManager().getActiveTraitsOf(entity);
-		}else{
-			return Evolution.getInstance().getTraitManager().getInactiveTraitsOf(entity);
-		}
+	public ImmutableSet<ITrait> getTraits(TraitEntity entity){
+		return entity.getTraits(this);
 	}
 
 
