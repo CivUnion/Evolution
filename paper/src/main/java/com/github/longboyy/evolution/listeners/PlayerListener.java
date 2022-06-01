@@ -76,29 +76,13 @@ public class PlayerListener implements Listener {
 			inactiveTraits.forEach(trait -> this.generateText(trait, entity, msg));
 		}
 
-		/*
-		for(Map.Entry<ITrait, TraitType> traitEntry : traits.entrySet()){
-			ITrait trait = traitEntry.getKey();
-			TraitType type = traitEntry.getValue();
-
-			//msg.append(Component.newline());
-
-			TextComponent.Builder traitBuilder = Component.text();
-			traitBuilder.append(Component.text(trait.getPrettyName(), type == TraitType.ACTIVE ? Evolution.SUCCESS_GREEN : Evolution.FAILURE_RED, TextDecoration.UNDERLINED));
-			//traitBuilder.append(Component.newline());
-			msg.append(traitBuilder.hoverEvent(HoverEvent.showText(trait.displayInfo(entity).build())));
-			//msg.append(trait.displayInfo(entity, traitBuilder).build());
-			msg.append(Component.newline());
-		}
-		 */
-
 		player.sendMessage(msg.build());
 		event.setCancelled(true);
 	}
 
 	private void generateText(ITrait trait, TraitEntity entity, TextComponent.Builder builder){
 		TextComponent.Builder traitBuilder = Component.text();
-		traitBuilder.append(Component.text(trait.getPrettyName()));
+		traitBuilder.append(Component.text(trait.getPrettyName(entity)));
 		builder.append(traitBuilder.hoverEvent(HoverEvent.showText(trait.displayInfo(entity).build())));
 		builder.append(Component.newline());
 	}

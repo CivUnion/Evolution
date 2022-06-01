@@ -32,7 +32,7 @@ public class SicklyTrait extends Trait {
 	private TraitManager manager;
 
 	public SicklyTrait() {
-		super("sickly", 1D, TraitCategory.ILLNESS, ImmutableSet.copyOf(new EntityType[]{
+		super("sickly", TraitCategory.ILLNESS, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.COW,
 				EntityType.SHEEP,
 				EntityType.PIG,
@@ -57,7 +57,7 @@ public class SicklyTrait extends Trait {
 	private void getDownWithTheSickness(TraitEntity entity){
 		List<Entity> entityList = entity.entity.getNearbyEntities(this.sicknessRange, this.sicknessRange, this.sicknessRange);
 		Set<TraitEntity> entities = entityList.stream()
-				.filter(ent -> ent instanceof LivingEntity && manager.getTraitsByEntityType(ent.getType()).contains(this))
+				.filter(ent -> ent instanceof LivingEntity && manager.getTraits(ent.getType()).contains(this))
 				.map(ent -> new TraitEntity(ent))
 				.collect(Collectors.toSet());
 
@@ -68,7 +68,8 @@ public class SicklyTrait extends Trait {
 				continue;
 			}
 
-			if(!manager.getTraitsByEntityType(ent.getType()).contains(this)){
+			//do we really need this?
+			if(!manager.getTraits(ent.getType()).contains(this)){
 				return;
 			}
 
@@ -87,19 +88,7 @@ public class SicklyTrait extends Trait {
 						entity.getName(),
 						entity.getType(),
 						entity.getUniqueId()));
-				/*
-				ImmutableSet<ITrait> entTraits = TraitType.ACTIVE.getTraitsOf(entity);
-				Set<ITrait> newEntTraits;
-				if(entTraits == null){
-					newEntTraits = new HashSet<>();
-				}else{
-					newEntTraits = new HashSet<>(entTraits);
-				}
-
-				newEntTraits.add(this);
-				 */
 				ent.addTrait(this, TraitType.ACTIVE);
-				//manager.setActiveTraitsOf(ent, ImmutableSet.copyOf(newEntTraits));
 				this.applyTrait(ent, (this.getVariation(entity)+this.getVariation(ent))*0.5D);
 			}
 		}
@@ -121,7 +110,7 @@ public class SicklyTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Sickly";
 	}
 
@@ -132,5 +121,11 @@ public class SicklyTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
+		super.parseConfig(section);
+	}
+
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
 	}
 }

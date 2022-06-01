@@ -100,9 +100,8 @@ public class TraitUtils {
 		manager.registerTrait(new SicklyTrait());
 	}
 
-	/*
 	public static ImmutableSet<ITrait> generateUniqueTraits(ImmutableSet<ITrait> traits, int amount){
-		BiasedRandomPicker<ITrait> picker = Evolution.getInstance().getTraitManager().getRandomPicker(traits);
+		BiasedRandomPicker<ITrait> picker = new TraitPickerBuilder(traits).build();
 
 		if(picker == null){
 			return ImmutableSet.copyOf(new ITrait[0]);
@@ -120,6 +119,5 @@ public class TraitUtils {
 
 		return ImmutableSet.copyOf(pickedTraits);
 	}
-	 */
 
 }

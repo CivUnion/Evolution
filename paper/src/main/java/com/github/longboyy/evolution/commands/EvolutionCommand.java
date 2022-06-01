@@ -28,11 +28,11 @@ public class EvolutionCommand extends BaseCommand {
 
 	@Subcommand("reload")
 	@Description("Reloads the config for Evolution")
-	public void onReload(){
+	public void onReload(Player player){
 		EvolutionConfigParser configParser = this.plugin.getConfigParser();
 		if(configParser.parse()){
-			ConfigurationSection section = configParser.getConfig();
-			this.manager.parseConfig(section);
+			//ConfigurationSection section = configParser.getConfig();
+			//this.manager.parseConfig(section);
 		}
 	}
 
@@ -61,6 +61,9 @@ public class EvolutionCommand extends BaseCommand {
 		}
 
 		entity.addTrait(trait, active ? TraitType.ACTIVE : TraitType.INACTIVE);
+		if(active){
+			trait.applyTrait(entity, entity.getVariation(trait));
+		}
 
 		/*
 		ImmutableMap<ITrait, TraitType> traits = entity.getTraits();
@@ -159,6 +162,9 @@ public class EvolutionCommand extends BaseCommand {
 
 		//variation = MoreMath.clamp(variation, -1, 1);
 		entity.setVariation(trait, variation);
+		if(entity.getTraitType(trait) == TraitType.ACTIVE){
+			trait.applyTrait(entity, variation);
+		}
 
 		/*
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();

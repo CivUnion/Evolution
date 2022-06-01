@@ -1,7 +1,6 @@
 package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
-import com.github.longboyy.evolution.listeners.TraitListener;
 import com.github.longboyy.evolution.traits.*;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
@@ -11,13 +10,14 @@ import net.objecthunter.exp4j.Expression;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
 import vg.civcraft.mc.civmodcore.utilities.MoreMath;
 
-public class LeatherTrait extends Trait {
+public class LeatherTrait extends ListenerTrait {
 
 	private double minValue = 1D;
 	private double maxValue = 5D;
@@ -27,7 +27,7 @@ public class LeatherTrait extends Trait {
 	private final TraitManager manager;
 
 	public LeatherTrait() {
-		super("leather", 1D, TraitCategory.HUSBANDRY, ImmutableSet.copyOf(new EntityType[]{
+		super("leather", TraitCategory.HUSBANDRY, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.COW,
 				EntityType.MUSHROOM_COW,
 				EntityType.PIG,
@@ -39,6 +39,7 @@ public class LeatherTrait extends Trait {
 
 		this.manager = Evolution.getInstance().getTraitManager();
 
+		/*
 		TraitListener listener = this.manager.getListener();
 		listener.registerEvent(EntityDeathEvent.class, _event -> {
 			EntityDeathEvent event = (EntityDeathEvent) _event;
@@ -57,6 +58,24 @@ public class LeatherTrait extends Trait {
 			event.getDrops().addAll(dropMap.getItemStackRepresentation());
 			//dropMap.getItemStackRepresentation().forEach(event.getDrops()::add);
 		});
+		 */
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onDeath(EntityDeathEvent event){
+		TraitEntity entity = new TraitEntity(event.getEntity());
+
+		if(!entity.hasTrait(this, TraitType.ACTIVE)){
+			return;
+		}
+
+		ItemStack item = new ItemStack(this.leatherItem);
+		item.setAmount(Math.toIntExact(Math.round(MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue))));
+		ItemMap dropMap = TraitUtils.addItem(new ItemMap(event.getDrops()), item);
+
+		event.getDrops().clear();
+		event.getDrops().addAll(dropMap.getItemStackRepresentation());
+		//dropMap.getItemStackRepresentation().forEach(event.getDrops()::add);
 	}
 
 	@Override
@@ -72,7 +91,7 @@ public class LeatherTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Leather";
 	}
 
@@ -83,7 +102,12 @@ public class LeatherTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
+		super.parseConfig(section);
+	}
 
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
 	}
 
 	private double getMultiplier(TraitEntity entity){

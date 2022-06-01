@@ -21,7 +21,7 @@ public class InventorySizeTrait extends Trait {
 	private Expression variationExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
 
 	public InventorySizeTrait() {
-		super("inv_size", 1D, TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
+		super("inv_size", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.LLAMA
 		}));
 	}
@@ -52,7 +52,7 @@ public class InventorySizeTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Inventory Size";
 	}
 
@@ -63,7 +63,12 @@ public class InventorySizeTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
+		super.parseConfig(section);
+	}
 
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
 	}
 
 	private int getInventoryColumns(TraitEntity entity){

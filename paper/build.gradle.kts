@@ -3,7 +3,7 @@ import io.papermc.paperweight.util.set
 plugins {
 	`java-library`
 	id("net.civmc.civgradle.plugin")
-	id("io.papermc.paperweight.userdev") version "1.3.1"
+	id("io.papermc.paperweight.userdev") version "1.3.6"
 }
 
 civGradle {

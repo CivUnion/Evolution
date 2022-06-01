@@ -1,6 +1,10 @@
 package com.github.longboyy.evolution.traits;
 
 import com.github.longboyy.evolution.Evolution;
+import com.github.longboyy.evolution.events.AddTraitEvent;
+import com.github.longboyy.evolution.events.ChangeVariationEvent;
+import com.github.longboyy.evolution.events.RemoveTraitEvent;
+import com.github.longboyy.evolution.events.SetTraitsEvent;
 import com.github.longboyy.evolution.util.pdc.StringDoubleMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -82,13 +86,18 @@ public class TraitEntity {
 	public void setVariation(ITrait trait, double variation){
 		PersistentDataContainer pdc = this.entity.getPersistentDataContainer();
 
-		NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
-		Map<String, Double> variations = pdc.has(variationsKey)
-				? pdc.get(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP) : new HashMap<>();
+		ChangeVariationEvent cve = new ChangeVariationEvent(this, trait, variation);
 
-		variation = MoreMath.clamp(variation, -1D, 1D);
-		variations.put(trait.getIdentifier(), variation);
-		pdc.set(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP, variations);
+		if(cve.callEvent()) {
+			variation = cve.getVariation();
+			NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
+			Map<String, Double> variations = pdc.has(variationsKey)
+					? pdc.get(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP) : new HashMap<>();
+
+			variation = MoreMath.clamp(variation, -1D, 1D);
+			variations.put(trait.getIdentifier(), variation);
+			pdc.set(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP, variations);
+		}
 	}
 
 	public double getVariation(ITrait trait){
@@ -108,28 +117,28 @@ public class TraitEntity {
 		Set<ITrait> newTraits = new HashSet<>(this.getTraits(type));
 		boolean success = newTraits.add(trait);
 		if(success) {
-			this.setTraits(ImmutableSet.copyOf(newTraits), type);
+			AddTraitEvent ate = new AddTraitEvent(this, trait, type);
+			if(ate.callEvent()) {
+				this.setTraits(ImmutableSet.copyOf(newTraits), type);
+			}
 		}
 		return success;
 	}
 
 	public boolean removeTrait(ITrait trait){
 		PersistentDataContainer pdc = this.entity.getPersistentDataContainer();
-		if(PersistentDataContainerExtensions.hasList(pdc, TraitType.ACTIVE.getKey())){
-			List<String> activeTraits = PersistentDataContainerExtensions.getList(pdc, TraitType.ACTIVE.getKey(), PersistentDataType.STRING);
-			if(activeTraits.contains(trait.getIdentifier())){
-				activeTraits.remove(trait.getIdentifier());
-				PersistentDataContainerExtensions.setList(pdc, TraitType.ACTIVE.getKey(), PersistentDataType.STRING, activeTraits);
-				return true;
-			}
-		}
 
-		if(PersistentDataContainerExtensions.hasList(pdc, TraitType.INACTIVE.getKey())){
-			List<String> activeTraits = PersistentDataContainerExtensions.getList(pdc, TraitType.INACTIVE.getKey(), PersistentDataType.STRING);
-			if(activeTraits.contains(trait.getIdentifier())){
-				activeTraits.remove(trait.getIdentifier());
-				PersistentDataContainerExtensions.setList(pdc, TraitType.INACTIVE.getKey(), PersistentDataType.STRING, activeTraits);
-				return true;
+		RemoveTraitEvent rte = new RemoveTraitEvent(this, trait);
+		if(rte.callEvent()) {
+			for (TraitType type : TraitType.values()) {
+				if (PersistentDataContainerExtensions.hasList(pdc, type.getKey())) {
+					List<String> stringTraits = PersistentDataContainerExtensions.getList(pdc, type.getKey(), PersistentDataType.STRING);
+					if (stringTraits.contains(trait.getIdentifier())) {
+						stringTraits.remove(trait.getIdentifier());
+						PersistentDataContainerExtensions.setList(pdc, type.getKey(), PersistentDataType.STRING, stringTraits);
+						return true;
+					}
+				}
 			}
 		}
 
@@ -138,22 +147,32 @@ public class TraitEntity {
 
 	public void setTraits(ImmutableSet<ITrait> traits, TraitType type){
 		PersistentDataContainer pdc = this.entity.getPersistentDataContainer();
-		List<String> stringTraits = traits.stream().map(trait -> trait.getIdentifier()).collect(Collectors.toList());
-		PersistentDataContainerExtensions.setList(pdc, type.getKey(), PersistentDataType.STRING, stringTraits);
+
+		SetTraitsEvent ste = new SetTraitsEvent(this, traits, type);
+		if(ste.callEvent()){
+			List<String> stringTraits = ste.getTraits().stream().map(trait -> trait.getIdentifier()).collect(Collectors.toList());
+			PersistentDataContainerExtensions.setList(pdc, type.getKey(), PersistentDataType.STRING, stringTraits);
+		}
+
+
 	}
 
 	public ImmutableMap<ITrait, TraitType> getTraits(){
 		Map<ITrait, TraitType> allTraits = new HashMap<>();
-		ImmutableSet<ITrait> activeTraits = this.getTraits(TraitType.ACTIVE);
-		if(activeTraits != null){
-			activeTraits.forEach(trait -> allTraits.put(trait, TraitType.ACTIVE));
-		}
-		ImmutableSet<ITrait> inactiveTraits = this.getTraits(TraitType.INACTIVE);
-		if(inactiveTraits != null){
-			inactiveTraits.forEach(trait -> allTraits.put(trait, TraitType.INACTIVE));
+		for(TraitType type : TraitType.values()){
+			ImmutableSet<ITrait> traits = this.getTraits(type);
+			if(traits != null){
+				traits.forEach(trait -> allTraits.put(trait, type));
+			}
 		}
 
 		return ImmutableMap.copyOf(allTraits);
+	}
+
+	public ImmutableSet<ITrait> getTraits(TraitCategory category){
+		return ImmutableSet.copyOf(this.getTraits().keySet().stream()
+				.filter(trait -> trait.getCategory() == category)
+				.collect(Collectors.toSet()));
 	}
 
 	public ImmutableSet<ITrait> getTraits(TraitType type){
@@ -175,6 +194,14 @@ public class TraitEntity {
 		}
 
 		return ImmutableSet.copyOf(traits);
+	}
+
+	public TraitType getTraitType(ITrait trait){
+		if(!this.hasTrait(trait)){
+			return null;
+		}
+
+		return this.hasTrait(trait, TraitType.ACTIVE) ? TraitType.ACTIVE : TraitType.INACTIVE;
 	}
 
 	// Trait related end

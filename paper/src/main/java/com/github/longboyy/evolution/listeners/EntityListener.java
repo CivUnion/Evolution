@@ -1,10 +1,8 @@
 package com.github.longboyy.evolution.listeners;
 
 import com.github.longboyy.evolution.Evolution;
-import com.github.longboyy.evolution.traits.ITrait;
-import com.github.longboyy.evolution.traits.TraitEntity;
-import com.github.longboyy.evolution.traits.TraitManager;
-import com.github.longboyy.evolution.traits.TraitType;
+import com.github.longboyy.evolution.traits.*;
+import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.bukkit.Bukkit;
@@ -58,15 +56,20 @@ public class EntityListener implements Listener {
 			return;
 		}
 
-		LivingEntity entity = event.getEntity();
-		TraitManager manager = this.plugin.getTraitManager();
+		//LivingEntity entity = event.getEntity();
+		//TraitManager manager = this.plugin.getTraitManager();
+		TraitLogicHandler.handleBreed(
+				new TraitEntity(event.getEntity()),
+				new TraitEntity(event.getMother()),
+				new TraitEntity(event.getFather())
+		);
 		//manager.generateTraitsFor(entity, event.getMother(), event.getFather());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onEntitiesLoad(EntitiesLoadEvent event){
 		//this.plugin.info("Loading animals in chunk");
-		TraitManager manager = this.plugin.getTraitManager();
+		//TraitManager manager = this.plugin.getTraitManager();
 		//this.plugin.info(String.format("Found %s generic entities in chunk", event.getChunk().getEntities().length));
 		Set<TraitEntity> entities = event.getEntities().stream()
 				.filter(entity -> entity instanceof LivingEntity)
@@ -74,10 +77,8 @@ public class EntityListener implements Listener {
 		//this.plugin.info(String.format("Found %s living entities in chunk", entities.size()));
 
 		entities.forEach(entity -> {
-			ImmutableMap<ITrait, TraitType> traits = entity.getTraits();
-			if(traits.isEmpty()){
 				//manager.generateTraitsFor(entity);
-			}
+			TraitLogicHandler.handleEntitySpawn(entity);
 		});
 	}
 

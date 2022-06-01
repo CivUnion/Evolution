@@ -28,7 +28,7 @@ public class SpeedTrait extends Trait {
 	private Expression negativeExpression = TraitUtils.createVariationExpression("-(log(1-x)/log(2))^0.7");
 
 	public SpeedTrait() {
-		super("speed", 1D, TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
+		super("speed", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.HORSE,
 				EntityType.MULE,
 				EntityType.DONKEY,
@@ -96,7 +96,7 @@ public class SpeedTrait extends Trait {
 	}
 
 	@Override
-	public String getPrettyName() {
+	public String getPrettyName(TraitEntity entity) {
 		return "Speed";
 	}
 
@@ -107,7 +107,12 @@ public class SpeedTrait extends Trait {
 
 	@Override
 	public void parseConfig(ConfigurationSection section) {
+		super.parseConfig(section);
+	}
 
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return 1D;
 	}
 
 	private double bpsToInternal(double bps){
