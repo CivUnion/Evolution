@@ -32,7 +32,10 @@ public class HealthTrait extends Trait {
 				EntityType.HORSE,
 				EntityType.MULE,
 				EntityType.DONKEY,
-				EntityType.CHICKEN
+				EntityType.CHICKEN,
+				EntityType.LLAMA,
+				EntityType.TRADER_LLAMA,
+				EntityType.STRIDER
 		}));
 
 		this.getAllowedTypes().forEach(type -> {

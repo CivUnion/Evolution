@@ -47,7 +47,7 @@ public class Evolution extends ACivMod {
 		}
 
 		//this.traitManager.parseConfig(this.configParser.getConfig());
-		TraitUtils.registerDefaultTraits(this.traitManager);
+		//TraitUtils.registerDefaultTraits(this.traitManager);
 
 		this.registerListener(new EntityListener(this));
 		this.registerListener(new PlayerListener(this));

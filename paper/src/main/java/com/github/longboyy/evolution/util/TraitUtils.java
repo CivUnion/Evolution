@@ -95,6 +95,8 @@ public class TraitUtils {
 
 		// Utility Traits
 		manager.registerTrait(new HealthTrait());
+		manager.registerTrait(new SpeedTrait());
+		manager.registerTrait(new InventorySizeTrait());
 
 		// Illness Traits
 		manager.registerTrait(new SicklyTrait());

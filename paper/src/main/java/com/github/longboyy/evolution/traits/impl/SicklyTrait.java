@@ -98,20 +98,21 @@ public class SicklyTrait extends Trait {
 	@Override
 	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
-		newBuilder.append(Component.newline());
-		newBuilder.append(Component.text("Spread chance:"));
-		newBuilder.append(Component.space());
-
 		double selfVariation = MoreMath.clamp(this.getVariation(entity), 0D, 1D);
 		double chance = this.sicknessChance * selfVariation;
 
-		newBuilder.append(Component.text(String.format("%1.5f", chance, chance > 0D ? Evolution.FAILURE_RED : Evolution.SUCCESS_GREEN)));
+		if(chance > 0D) {
+			newBuilder.append(Component.newline());
+			newBuilder.append(Component.text("Spread chance:"));
+			newBuilder.append(Component.space());
+			newBuilder.append(Component.text(String.format("%1.5f", chance, chance > 0D ? Evolution.FAILURE_RED : Evolution.SUCCESS_GREEN)));
+		}
 		return newBuilder;
 	}
 
 	@Override
 	public String getPrettyName(TraitEntity entity) {
-		return "Sickly";
+		return entity != null && entity.hasTrait(this) ? (entity.getVariation(this) >= 0D ? "Sickly" : "Hardy") : "Sickly";
 	}
 
 	@Override

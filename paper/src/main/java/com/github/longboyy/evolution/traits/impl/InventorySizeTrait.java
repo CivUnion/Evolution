@@ -21,7 +21,7 @@ public class InventorySizeTrait extends Trait {
 	private Expression variationExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
 
 	public InventorySizeTrait() {
-		super("inv_size", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
+		super("llama_inv", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.LLAMA
 		}));
 	}
@@ -33,7 +33,7 @@ public class InventorySizeTrait extends Trait {
 			int columns = this.getInventoryColumns(entity);
 			// why the fuck is this called set strength????
 			// it's literally just the number of columns in a llamas inventory reeeeee
-			Llama llama = (Llama) entity;
+			Llama llama = (Llama) entity.entity;
 			llama.setStrength(columns);
 		}
 		return success;

@@ -3,8 +3,11 @@ package com.github.longboyy.evolution.traits;
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerPortalEvent;
 
 import java.util.*;
 
@@ -29,6 +32,7 @@ public class TraitManager {
 		this.traitsByClass = new HashMap<>();
 		this.traitById = new HashMap<>();
 		this.traitsByEntityType = new HashMap<>();
+		PlayerPortalEvent p;
 	}
 
 	public void parseConfig(ConfigurationSection section){
@@ -51,12 +55,7 @@ public class TraitManager {
 
 		this.plugin.info(String.format("Registering Trait '%s'", trait.getIdentifier()));
 
-		if(this.traitSection != null){
-			if(this.traitSection.isConfigurationSection(trait.getIdentifier())){
-				ConfigurationSection section = this.traitSection.getConfigurationSection(trait.getIdentifier());
-				trait.parseConfig(section);
-			}
-		}
+		trait.parseConfig(this.traitSection != null ? this.traitSection.getConfigurationSection(trait.getIdentifier()) : null);
 
 		if(!trait.isEnabled()){
 			return;
@@ -85,6 +84,8 @@ public class TraitManager {
 		if(trait instanceof ListenerTrait){
 			this.plugin.registerListener((ListenerTrait)trait);
 		}
+
+		this.plugin.info(String.format("Registered Trait '%s'", trait.getIdentifier()));
 
 	}
 
@@ -118,6 +119,12 @@ public class TraitManager {
 	}
 
 	private void clearTraits(){
+		this.traits.forEach(trait -> {
+			if(trait instanceof ListenerTrait){
+				HandlerList.unregisterAll((ListenerTrait) trait);
+			}
+		});
+
 		this.traits.clear();
 		this.traitById.clear();
 		this.traitsByClass.clear();

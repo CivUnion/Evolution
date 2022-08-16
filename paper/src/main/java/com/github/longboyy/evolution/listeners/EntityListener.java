@@ -34,17 +34,20 @@ public class EntityListener implements Listener {
 			return;
 		}
 
-		TraitManager manager = this.plugin.getTraitManager();
-		LivingEntity entity = event.getEntity();
+		//TraitManager manager = this.plugin.getTraitManager();
+		TraitEntity entity = new TraitEntity(event.getEntity());
 
 		switch(event.getSpawnReason()){
 			case EGG:
 			case DISPENSE_EGG:
-			case NATURAL:
 			case OCELOT_BABY:
 			case SPAWNER_EGG:
 			case DEFAULT:
 				//manager.generateTraitsFor(entity);
+				TraitLogicHandler.handleEntitySpawn(entity);
+				break;
+			case NATURAL:
+
 			default:
 				return;
 		}

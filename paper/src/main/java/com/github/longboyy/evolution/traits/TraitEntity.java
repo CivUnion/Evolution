@@ -83,6 +83,14 @@ public class TraitEntity {
 
 	// Trait related start
 
+	public boolean applyTrait(ITrait trait, double variation){
+		try{
+			return trait.applyTrait(this, variation);
+		}catch(Exception e){
+			return false;
+		}
+	}
+
 	public void setVariation(ITrait trait, double variation){
 		PersistentDataContainer pdc = this.entity.getPersistentDataContainer();
 

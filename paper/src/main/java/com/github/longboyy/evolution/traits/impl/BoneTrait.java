@@ -9,7 +9,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.objecthunter.exp4j.Expression;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -33,7 +33,11 @@ public class BoneTrait extends Trait {
 			EntityType.PIG,
 			EntityType.HORSE,
 			EntityType.MULE,
-			EntityType.DONKEY
+			EntityType.DONKEY,
+			EntityType.GOAT,
+			EntityType.HOGLIN,
+			EntityType.LLAMA,
+			EntityType.TRADER_LLAMA
 		}));
 
 		this.manager = Evolution.getInstance().getTraitManager();

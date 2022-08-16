@@ -9,10 +9,12 @@ import com.github.longboyy.evolution.traits.TraitEntity;
 import com.github.longboyy.evolution.traits.TraitManager;
 import com.github.longboyy.evolution.traits.TraitType;
 import net.kyori.adventure.text.Component;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import vg.civcraft.mc.civmodcore.utilities.MoreMath;
 
 @CommandAlias("evo|evolution")
 @CommandPermission("evo.op")
@@ -33,6 +35,9 @@ public class EvolutionCommand extends BaseCommand {
 		if(configParser.parse()){
 			//ConfigurationSection section = configParser.getConfig();
 			//this.manager.parseConfig(section);
+			player.sendMessage(Component.text("Successfully reloaded config.", Evolution.SUCCESS_GREEN));
+		}else{
+			player.sendMessage(Component.text("Failed to reload config successfully.", Evolution.FAILURE_RED));
 		}
 	}
 
@@ -60,33 +65,16 @@ public class EvolutionCommand extends BaseCommand {
 			return;
 		}
 
-		entity.addTrait(trait, active ? TraitType.ACTIVE : TraitType.INACTIVE);
-		if(active){
-			trait.applyTrait(entity, entity.getVariation(trait));
-		}
-
-		/*
-		ImmutableMap<ITrait, TraitType> traits = entity.getTraits();
-		if(traits == null){
+		if(!manager.getTraits(entity.getType()).contains(trait)){
+			player.sendMessage(Component.text("You can't apply that trait to this entity!", Evolution.FAILURE_RED));
 			return;
 		}
 
-		TraitType type = active ? TraitType.ACTIVE : TraitType.INACTIVE;
-
-		Set<Map.Entry<ITrait, TraitType>> newTraits = new HashSet<>(traits.entrySet());
-		//TraitType traitType = traits.get(trait);
-
-		newTraits.removeIf(entry -> entry.getValue() != type);
-		Set<ITrait> finalTraits = newTraits.stream().map(entry -> entry.getKey()).collect(Collectors.toSet());
-		finalTraits.add(trait);
-
+		entity.addTrait(trait, active ? TraitType.ACTIVE : TraitType.INACTIVE);
 		if(active){
-			this.manager.setActiveTraitsOf(entity, ImmutableSet.copyOf(finalTraits));
-			trait.applyTrait(entity, trait.getVariation(entity));
-		}else{
-			this.manager.setInactiveTraitsOf(entity, ImmutableSet.copyOf(finalTraits));
+			entity.applyTrait(trait, entity.getVariation(trait));
+			//trait.applyTrait(entity, entity.getVariation(trait));
 		}
-		 */
 		player.sendMessage(Component.text("Successfully added trait to entity.", Evolution.SUCCESS_GREEN));
 	}
 
@@ -160,10 +148,11 @@ public class EvolutionCommand extends BaseCommand {
 			return;
 		}
 
-		//variation = MoreMath.clamp(variation, -1, 1);
+		variation = MoreMath.clamp(variation, -1, 1);
 		entity.setVariation(trait, variation);
 		if(entity.getTraitType(trait) == TraitType.ACTIVE){
-			trait.applyTrait(entity, variation);
+			entity.applyTrait(trait, variation);
+			//trait.applyTrait(entity, variation);
 		}
 
 		/*

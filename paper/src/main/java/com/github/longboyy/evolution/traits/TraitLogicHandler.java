@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableSet;
 import vg.civcraft.mc.civmodcore.utilities.BiasedRandomPicker;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,7 @@ public class TraitLogicHandler {
 
 		ImmutableSet<ITrait> validTraits = Evolution.getInstance().getTraitManager().getTraits(entity.getType());
 		if(validTraits.isEmpty()){
+			//Evolution.getInstance().info("Attempted to generate traits for entity but valid traits was null");
 			return;
 		}
 
@@ -46,6 +48,21 @@ public class TraitLogicHandler {
 
 			inactiveTraits.addAll(TraitUtils.generateUniqueTraits(ImmutableSet.copyOf(traits), TRAITS_PER_CATEGORY-1));
 		}
+
+		Evolution.getInstance().info(String.format("Generated traits for %s, Active traits: %s, Inactive traits: %s", entity.getType(), activeTraits.size(), inactiveTraits.size()));
+
+		entity.setTraits(ImmutableSet.copyOf(activeTraits), TraitType.ACTIVE);
+		entity.setTraits(ImmutableSet.copyOf(inactiveTraits), TraitType.INACTIVE);
+
+		for(Map.Entry<ITrait, TraitType> traitEntry : entity.getTraits().entrySet()){
+			ITrait trait = traitEntry.getKey();
+			entity.setVariation(trait, entity.getVariation(trait));
+			if(traitEntry.getValue() == TraitType.ACTIVE){
+				trait.applyTrait(entity, entity.getVariation(trait));
+			}
+		}
+
+		entity.entity.setPersistent(true);
 	}
 
 	public static void handleBreed(TraitEntity child, TraitEntity mother, TraitEntity father){
@@ -118,6 +135,8 @@ public class TraitLogicHandler {
 				trait.applyTrait(child, variation);
 			}
 		}
+
+		child.entity.setPersistent(true);
 	}
 
 }

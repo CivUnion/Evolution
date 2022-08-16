@@ -24,8 +24,6 @@ public class LeatherTrait extends ListenerTrait {
 	private ItemStack leatherItem = new ItemStack(Material.LEATHER, 1);
 	private Expression variationExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
 
-	private final TraitManager manager;
-
 	public LeatherTrait() {
 		super("leather", TraitCategory.HUSBANDRY, ImmutableSet.copyOf(new EntityType[]{
 				EntityType.COW,
@@ -37,28 +35,6 @@ public class LeatherTrait extends ListenerTrait {
 				EntityType.DONKEY
 		}));
 
-		this.manager = Evolution.getInstance().getTraitManager();
-
-		/*
-		TraitListener listener = this.manager.getListener();
-		listener.registerEvent(EntityDeathEvent.class, _event -> {
-			EntityDeathEvent event = (EntityDeathEvent) _event;
-
-			TraitEntity entity = new TraitEntity(event.getEntity());
-
-			if(!entity.hasTrait(this, TraitType.ACTIVE)){
-				return;
-			}
-
-			ItemStack item = new ItemStack(this.leatherItem);
-			item.setAmount(Math.toIntExact(Math.round(MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue))));
-			ItemMap dropMap = TraitUtils.addItem(new ItemMap(event.getDrops()), item);
-
-			event.getDrops().clear();
-			event.getDrops().addAll(dropMap.getItemStackRepresentation());
-			//dropMap.getItemStackRepresentation().forEach(event.getDrops()::add);
-		});
-		 */
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)

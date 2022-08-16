@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class SpeedTrait extends Trait {
 
-	private double defaultValue = 0.225D;
+	private double defaultValue = 10D;
 
 	private Map<EntityType, Double> maxSpeedMap = new HashMap<>();
 

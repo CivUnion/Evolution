@@ -57,7 +57,6 @@ public class EvolutionConfigParser extends ConfigParser {
 		}
 
 		this.plugin.getTraitManager().parseConfig(config.getConfigurationSection("traits"));
-		//this.baseSection = config;
 		EvolutionReloadEvent event = new EvolutionReloadEvent(config);
 		return event.callEvent();
 	}
