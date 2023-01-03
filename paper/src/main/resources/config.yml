@@ -1,0 +1,13 @@
+debug: true
+traits:
+  bones:
+    #positiveExpression: (log(1+x)/log(2))^0.7
+    weight: 1
+    maxVariationPerGeneration: 0.005
+    minDrop: 1
+    maxDrop: 5
+    item:
+      material: BONE
+      lore:
+        - A bone with bits of muscle and sinew
+

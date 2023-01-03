@@ -3,6 +3,7 @@ package com.github.longboyy.evolution.traits.impl;
 import com.github.longboyy.evolution.traits.Trait;
 import com.github.longboyy.evolution.traits.TraitCategory;
 import com.github.longboyy.evolution.traits.TraitEntity;
+import com.github.longboyy.evolution.traits.configs.ExpressionTraitConfig;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
@@ -18,26 +19,46 @@ import org.checkerframework.checker.units.qual.A;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SpeedTrait extends Trait {
+public class SpeedTrait extends Trait<SpeedTrait.SpeedTraitConfig> {
 
-	private double defaultValue = 10D;
+	protected static double DEFAULT_SPEED = 10D;
+	protected static final ImmutableSet<EntityType> APPLICABLE_ENTITY_TYPES = ImmutableSet.copyOf(new EntityType[]{
+			EntityType.HORSE,
+			EntityType.MULE,
+			EntityType.DONKEY,
+			EntityType.LLAMA
+	});
 
-	private Map<EntityType, Double> maxSpeedMap = new HashMap<>();
+	public static class SpeedTraitConfig extends ExpressionTraitConfig {
 
-	private Expression positiveExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
-	private Expression negativeExpression = TraitUtils.createVariationExpression("-(log(1-x)/log(2))^0.7");
+		protected double defaultSpeed = DEFAULT_SPEED;
+		protected Map<EntityType, Double> speedMap = new HashMap<>();
+
+		public SpeedTraitConfig(){
+		}
+
+		@Override
+		public void parse(ConfigurationSection section) {
+			super.parse(section);
+			speedMap.clear();
+			this.defaultSpeed = section.getDouble("defaultSpeed", DEFAULT_SPEED);
+
+			APPLICABLE_ENTITY_TYPES.forEach(type -> {
+				this.speedMap.put(type, this.defaultSpeed);
+			});
+
+			if(section.isConfigurationSection("overrides")){
+				ConfigurationSection overrideSection = section.getConfigurationSection("overrides");
+				APPLICABLE_ENTITY_TYPES.forEach(type -> {
+					double speed = overrideSection.getDouble(type.name(), this.defaultSpeed);
+					this.speedMap.put(type, speed);
+				});
+			}
+		}
+	}
 
 	public SpeedTrait() {
-		super("speed", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
-				EntityType.HORSE,
-				EntityType.MULE,
-				EntityType.DONKEY,
-				EntityType.LLAMA
-		}));
-
-		this.getAllowedTypes().forEach(type -> {
-			this.maxSpeedMap.put(type, defaultValue);
-		});
+		super("speed", TraitCategory.UTILITY, APPLICABLE_ENTITY_TYPES);
 	}
 
 	@Override
@@ -105,9 +126,10 @@ public class SpeedTrait extends Trait {
 		return 0.005D;
 	}
 
+
 	@Override
-	public void parseConfig(ConfigurationSection section) {
-		super.parseConfig(section);
+	protected Class<SpeedTraitConfig> getConfigClass() {
+		return SpeedTraitConfig.class;
 	}
 
 	@Override
@@ -120,12 +142,12 @@ public class SpeedTrait extends Trait {
 	}
 
 	private double getExtraSpeed(TraitEntity entity, double variation){
-		double modifiedSpeed = this.maxSpeedMap.getOrDefault(entity.getType(), defaultValue);
+		double modifiedSpeed = this.config.speedMap.getOrDefault(entity.getType(), this.config.defaultSpeed);
 
 		if(variation >= 0){
-			modifiedSpeed *= positiveExpression.setVariable("x", variation).evaluate();
+			modifiedSpeed *= this.config.getPositiveExpression().setVariable("x", variation).evaluate();
 		}else{
-			modifiedSpeed *= negativeExpression.setVariable("x", variation).evaluate();
+			modifiedSpeed *= this.config.getNegativeExpression().setVariable("x", variation).evaluate();
 		}
 
 		return modifiedSpeed;

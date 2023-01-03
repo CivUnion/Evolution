@@ -1,9 +1,10 @@
-name: ${name}
-main: com.github.longboyy.evolution.Evolution
-author: Longboyy
+name: ${pluginName}
 version: ${version}
+author: Longboyy
+description: ${description}
+main: com.github.longboyy.evolution.Evolution
+api-version: ${api_version}
 depend: [CivModCore]
-api-version: 1.17
 permissions:
   evo.op:
     default: op

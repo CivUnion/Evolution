@@ -31,7 +31,7 @@ public interface ITrait {
 
 	boolean isEnabled();
 
-	void parseConfig(ConfigurationSection section);
+	boolean parseConfig(ConfigurationSection section);
 
 	String getPrettyName(TraitEntity entity);
 

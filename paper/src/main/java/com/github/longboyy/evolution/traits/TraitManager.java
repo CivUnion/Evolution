@@ -32,7 +32,6 @@ public class TraitManager {
 		this.traitsByClass = new HashMap<>();
 		this.traitById = new HashMap<>();
 		this.traitsByEntityType = new HashMap<>();
-		PlayerPortalEvent p;
 	}
 
 	public void parseConfig(ConfigurationSection section){
@@ -53,9 +52,12 @@ public class TraitManager {
 			return;
 		}
 
-		this.plugin.info(String.format("Registering Trait '%s'", trait.getIdentifier()));
+		this.plugin.info(String.format("Attempting to register Trait '%s'", trait.getIdentifier()));
 
-		trait.parseConfig(this.traitSection != null ? this.traitSection.getConfigurationSection(trait.getIdentifier()) : null);
+		boolean success = trait.parseConfig(this.traitSection != null ? this.traitSection.getConfigurationSection(trait.getIdentifier()) : null);
+		if(!success){
+			return;
+		}
 
 		if(!trait.isEnabled()){
 			return;
@@ -86,7 +88,6 @@ public class TraitManager {
 		}
 
 		this.plugin.info(String.format("Registered Trait '%s'", trait.getIdentifier()));
-
 	}
 
 	public ITrait getTrait(String id){

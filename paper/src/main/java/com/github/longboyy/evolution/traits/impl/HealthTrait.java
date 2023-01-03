@@ -2,6 +2,7 @@ package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.traits.*;
+import com.github.longboyy.evolution.traits.configs.ExpressionTraitConfig;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
@@ -12,35 +13,67 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
+import org.jetbrains.annotations.NotNull;
+import vg.civcraft.mc.civmodcore.config.ConfigHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class HealthTrait extends Trait {
+public class HealthTrait extends Trait<HealthTrait.HealthTraitConfig> {
 
+	protected static final double DEFAULT_HEALTH = 15D;
+
+	protected static final ImmutableSet<EntityType> APPLICABLE_ENTITY_TYPES = ImmutableSet.copyOf(new EntityType[]{
+			EntityType.COW,
+			EntityType.SHEEP,
+			EntityType.PIG,
+			EntityType.HORSE,
+			EntityType.MULE,
+			EntityType.DONKEY,
+			EntityType.CHICKEN,
+			EntityType.LLAMA,
+			EntityType.TRADER_LLAMA,
+			EntityType.STRIDER
+	});
+
+	public static class HealthTraitConfig extends ExpressionTraitConfig {
+
+		protected Map<EntityType, Double> healthMap = new HashMap<>();
+
+		public HealthTraitConfig(){
+		}
+
+		@Override
+		public void parse(ConfigurationSection section) {
+			super.parse(section);
+			double defaultHealth = section.getDouble("defaultHealth", DEFAULT_HEALTH);
+
+			if(section.isConfigurationSection("overrides")){
+				ConfigurationSection overrideSection = section.getConfigurationSection("overrides");
+				for(EntityType type : APPLICABLE_ENTITY_TYPES){
+					double health = overrideSection.getDouble(type.name(), defaultHealth);
+					this.healthMap.put(type, health);
+				}
+			}
+		}
+	}
+
+	/*
 	private double defaultValue = 15D;
 	private Map<EntityType, Double> healthMap = new HashMap<>();
 
 	private Expression positiveExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
 	private Expression negativeExpression = TraitUtils.createVariationExpression("-(log(1-x)/log(2))^0.7");
+	 */
 
 	public HealthTrait() {
-		super("health", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
-				EntityType.COW,
-				EntityType.SHEEP,
-				EntityType.PIG,
-				EntityType.HORSE,
-				EntityType.MULE,
-				EntityType.DONKEY,
-				EntityType.CHICKEN,
-				EntityType.LLAMA,
-				EntityType.TRADER_LLAMA,
-				EntityType.STRIDER
-		}));
+		super("health", TraitCategory.UTILITY, APPLICABLE_ENTITY_TYPES);
 
+		/*
 		this.getAllowedTypes().forEach(type -> {
 			this.healthMap.put(type, defaultValue);
 		});
+		 */
 
 		//TraitListener listener = Evolution.getInstance().getTraitManager().getListener();
 		//listener.registerEvent(this, );
@@ -131,8 +164,8 @@ public class HealthTrait extends Trait {
 	}
 
 	@Override
-	public void parseConfig(ConfigurationSection section) {
-		super.parseConfig(section);
+	protected Class<HealthTraitConfig> getConfigClass() {
+		return HealthTraitConfig.class;
 	}
 
 	@Override
@@ -156,12 +189,12 @@ public class HealthTrait extends Trait {
 	}
 
 	private double getExtraHealth(TraitEntity entity, double variation){
-		double modifiedHealth = this.healthMap.getOrDefault(entity.getType(), defaultValue);
+		double modifiedHealth = this.config.healthMap.getOrDefault(entity.getType(), DEFAULT_HEALTH);
 
 		if(variation >= 0){
-			modifiedHealth *= positiveExpression.setVariable("x", variation).evaluate();
+			modifiedHealth *= this.config.getPositiveExpression().setVariable("x", variation).evaluate();
 		}else{
-			modifiedHealth *= negativeExpression.setVariable("x", variation).evaluate();
+			modifiedHealth *= this.config.getNegativeExpression().setVariable("x", variation).evaluate();
 		}
 
 		return modifiedHealth;

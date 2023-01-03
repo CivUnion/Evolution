@@ -2,6 +2,8 @@ package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.traits.*;
+import com.github.longboyy.evolution.traits.configs.ExpressionTraitConfig;
+import com.github.longboyy.evolution.util.TraitEntityDropManager;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
@@ -14,15 +16,53 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import vg.civcraft.mc.civmodcore.CivModCorePlugin;
+import vg.civcraft.mc.civmodcore.config.ConfigHelper;
 import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
 import vg.civcraft.mc.civmodcore.utilities.MoreMath;
 
-public class BoneTrait extends Trait {
+import java.util.List;
 
+public class BoneTrait extends Trait<BoneTrait.BoneTraitConfig> {
+
+	public static class BoneTraitConfig extends ExpressionTraitConfig {
+		protected double minDrop = 1D;
+		protected double maxDrop = 5D;
+		protected ItemStack boneItem = new ItemStack(Material.BONE, 1);
+		//protected Expression variationExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
+
+		public BoneTraitConfig(){
+
+		}
+
+		@Override
+		public void parse(ConfigurationSection section) {
+			super.parse(section);
+			this.minDrop = section.getDouble("minDrop", 1D);
+			this.maxDrop = section.getDouble("maxDrop", 1D);
+			if(section.isConfigurationSection("item")){
+				ItemMap map = ConfigHelper.parseItemMapDirectly(section.getConfigurationSection("item"));
+				if(map != null){
+					List<ItemStack> stacks = map.getItemStackRepresentation();
+					if(stacks.size() > 0){
+						this.boneItem = stacks.get(0);
+						//CivModCorePlugin.getInstance().get
+					}
+				}
+			}
+
+			//String exp = section.getString("expression", "(log(1+x)/log(2))^0.7");
+			//this.variationExpression = TraitUtils.createVariationExpression(exp);
+		}
+	}
+
+	/*
 	private double minValue = 1D;
 	private double maxValue = 5D;
 	private ItemStack boneItem = new ItemStack(Material.BONE, 1);
 	private Expression variationExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
+	 */
 
 	private final TraitManager manager;
 
@@ -42,53 +82,30 @@ public class BoneTrait extends Trait {
 
 		this.manager = Evolution.getInstance().getTraitManager();
 
-		/*
-		TraitListener listener = this.manager.getListener();
-		listener.registerEvent(EntityDeathEvent.class, _event -> {
-			EntityDeathEvent event = (EntityDeathEvent) _event;
+		TraitEntityDropManager.getInstance().registerDrop(this, (entity, map) -> {
+			int dropAmount = Math.toIntExact(Math.round(this.config.minDrop));
 
-			TraitEntity entity = new TraitEntity(event.getEntity());
-
-			if(!entity.hasTrait(this, TraitType.ACTIVE)){
-				return;
+			if(entity.hasTrait(this, TraitType.ACTIVE)){
+				dropAmount = Math.toIntExact(Math.round(MoreMath.clamp(this.config.maxDrop * this.getMultiplier(entity), this.config.minDrop, this.config.maxDrop)));
 			}
 
-			ItemStack item = new ItemStack(this.boneItem);
-			item.setAmount(Math.toIntExact(Math.round(MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue))));
-			ItemMap dropMap = TraitUtils.addItem(new ItemMap(event.getDrops()), item);
+			ItemStack item = this.config.boneItem.clone();
+			item.setAmount(dropAmount);
 
-			event.getDrops().clear();
-			event.getDrops().addAll(dropMap.getItemStackRepresentation());
-			//dropMap.getItemStackRepresentation().forEach(event.getDrops()::add);
+			map.removeItemStackCompletely(new ItemStack(Material.BONE));
+			map.addItemStack(item);
 		});
-		 */
-	}
-
-	@EventHandler(priority = EventPriority.NORMAL)
-	public void onDeath(EntityDeathEvent event){
-		TraitEntity entity = new TraitEntity(event.getEntity());
-
-		if(!entity.hasTrait(this, TraitType.ACTIVE)){
-			return;
-		}
-
-		ItemStack item = new ItemStack(this.boneItem);
-		item.setAmount(Math.toIntExact(Math.round(MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue))));
-		ItemMap dropMap = TraitUtils.addItem(new ItemMap(event.getDrops()), item);
-
-		event.getDrops().clear();
-		event.getDrops().addAll(dropMap.getItemStackRepresentation());
 	}
 
 	private double getMultiplier(TraitEntity entity){
 		SicklyTrait sicklyTrait = this.manager.getTrait(SicklyTrait.class);
-		if(sicklyTrait != null){
-
+		if(sicklyTrait != null && entity.hasTrait(sicklyTrait, TraitType.ACTIVE)){
+			double sicklyVariation = sicklyTrait.getVariation(entity);
 		}
 
 		double variation = this.getVariation(entity);
 		if(variation > 0D){
-			return this.variationExpression.setVariable("x", variation).evaluate();
+			return this.config.getPositiveExpression().setVariable("x", variation).evaluate();
 		}else{
 			return 0D;
 		}
@@ -97,7 +114,7 @@ public class BoneTrait extends Trait {
 	@Override
 	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
-		double realAmount = MoreMath.clamp(this.maxValue * this.getMultiplier(entity), this.minValue, this.maxValue);
+		double realAmount = MoreMath.clamp(this.config.maxDrop * this.getMultiplier(entity), this.config.minDrop, this.config.maxDrop);
 		int amount = Math.toIntExact(Math.round(realAmount));
 		newBuilder.append(Component.newline());
 		newBuilder.append(Component.text("Dropped Bones:"));
@@ -116,6 +133,7 @@ public class BoneTrait extends Trait {
 		return 0.005D;
 	}
 
+	/*
 	@Override
 	public void parseConfig(ConfigurationSection section) {
 		super.parseConfig(section);
@@ -124,9 +142,15 @@ public class BoneTrait extends Trait {
 			this.variationExpression = TraitUtils.createVariationExpression(exp);
 		}
 	}
+	 */
+
+	@Override
+	protected Class<BoneTraitConfig> getConfigClass() {
+		return BoneTraitConfig.class;
+	}
 
 	@Override
 	public double getWeight(TraitEntity entity) {
-		return 1D;
+		return this.config.getWeight();
 	}
 }

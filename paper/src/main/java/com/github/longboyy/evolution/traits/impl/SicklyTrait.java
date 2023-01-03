@@ -2,6 +2,7 @@ package com.github.longboyy.evolution.traits.impl;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.traits.*;
+import com.github.longboyy.evolution.traits.configs.ExpressionTraitConfig;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
@@ -17,15 +18,25 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class SicklyTrait extends Trait {
+public class SicklyTrait extends Trait<SicklyTrait.SicklyTraitConfig> {
+	protected static long SICKNESS_INTERVAL = 20L;
 
-	//The range in blocks to be used in the check for other animals near sick animals
-	private double sicknessRange = 3D;
-	// How often to check if an animal should now be sick
-	private long sicknessInterval = 20L;
+	public static class SicklyTraitConfig extends ExpressionTraitConfig {
 
-	private double sicknessChance = 0.001D;
+		protected double sicknessRange = 3D;
+		protected double sicknessSpreadChance = 0.0001D;
 
+		public SicklyTraitConfig(){
+		}
+
+		@Override
+		public void parse(ConfigurationSection section) {
+			super.parse(section);
+			this.sicknessRange = section.getDouble("spreadRadius", 3D);
+			this.sicknessSpreadChance = section.getDouble("spreadChance", 0.0001D);
+		}
+
+	}
 
 	private int taskId = -1;
 
@@ -50,12 +61,12 @@ public class SicklyTrait extends Trait {
 			for(TraitEntity entity : entities){
 				this.getDownWithTheSickness(entity);
 			}
-		}, 0L, this.sicknessInterval);
+		}, 0L, SICKNESS_INTERVAL);
 	}
 
 	// Oh, ah, ah, ah, ah
 	private void getDownWithTheSickness(TraitEntity entity){
-		List<Entity> entityList = entity.entity.getNearbyEntities(this.sicknessRange, this.sicknessRange, this.sicknessRange);
+		List<Entity> entityList = entity.entity.getNearbyEntities(this.config.sicknessRange, this.config.sicknessRange, this.config.sicknessRange);
 		Set<TraitEntity> entities = entityList.stream()
 				.filter(ent -> ent instanceof LivingEntity && manager.getTraits(ent.getType()).contains(this))
 				.map(ent -> new TraitEntity(ent))
@@ -73,7 +84,7 @@ public class SicklyTrait extends Trait {
 				return;
 			}
 
-			double chance = this.sicknessChance * selfVariation;
+			double chance = this.config.sicknessSpreadChance * selfVariation;
 
 			if(chance <= 0D){
 				return;
@@ -99,7 +110,7 @@ public class SicklyTrait extends Trait {
 	public TextComponent.Builder displayInfo(TraitEntity entity) {
 		TextComponent.Builder newBuilder = super.displayInfo(entity);
 		double selfVariation = MoreMath.clamp(this.getVariation(entity), 0D, 1D);
-		double chance = this.sicknessChance * selfVariation;
+		double chance = this.config.sicknessSpreadChance * selfVariation;
 
 		if(chance > 0D) {
 			newBuilder.append(Component.newline());
@@ -121,8 +132,8 @@ public class SicklyTrait extends Trait {
 	}
 
 	@Override
-	public void parseConfig(ConfigurationSection section) {
-		super.parseConfig(section);
+	protected Class<SicklyTraitConfig> getConfigClass() {
+		return SicklyTraitConfig.class;
 	}
 
 	@Override

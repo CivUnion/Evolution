@@ -5,7 +5,7 @@ import com.github.longboyy.evolution.listeners.EntityListener;
 import com.github.longboyy.evolution.listeners.PlayerListener;
 import com.github.longboyy.evolution.traits.TraitLogicHandler;
 import com.github.longboyy.evolution.traits.TraitManager;
-import com.github.longboyy.evolution.util.pdc.StringDoubleMap;
+import com.github.longboyy.evolution.util.TraitEntityDropManager;
 import com.github.longboyy.evolution.util.TraitUtils;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
@@ -31,6 +31,8 @@ public class Evolution extends ACivMod {
 	}
 
 	private EvolutionConfigParser configParser;
+
+	private TraitEntityDropManager dropManager;
 	private TraitManager traitManager;
 
 	private EvolutionCommandManager commandManager;
@@ -40,6 +42,7 @@ public class Evolution extends ACivMod {
 		super.onEnable();
 		instance = this;
 		this.traitManager = new TraitManager(this);
+		this.dropManager = new TraitEntityDropManager();
 		this.configParser = new EvolutionConfigParser(this);
 		if(!this.configParser.parse()){
 			Bukkit.shutdown();
@@ -48,7 +51,7 @@ public class Evolution extends ACivMod {
 
 		//this.traitManager.parseConfig(this.configParser.getConfig());
 		//TraitUtils.registerDefaultTraits(this.traitManager);
-
+		this.registerListener(this.dropManager);
 		this.registerListener(new EntityListener(this));
 		this.registerListener(new PlayerListener(this));
 

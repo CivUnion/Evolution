@@ -18,24 +18,40 @@ public class TraitPickerBuilder {
 	private TraitEntity mother;
 	private TraitEntity father;
 
-	public TraitPickerBuilder(){
+	private TraitPickerBuilder(){
 		this(ImmutableSet.copyOf(new ITrait[0]));
 	}
 
-	public TraitPickerBuilder(ImmutableSet<ITrait> traits){
+	private TraitPickerBuilder(ImmutableSet<ITrait> traits){
 		this.traits = traits;
 		this.entity = null;
 	}
 
-	public TraitPickerBuilder(ImmutableSet<ITrait> traits, TraitEntity entity){
+	private TraitPickerBuilder(ImmutableSet<ITrait> traits, TraitEntity entity){
 		this.traits = traits;
 		this.entity = entity;
 	}
 
-	public TraitPickerBuilder(ImmutableSet<ITrait> traits, TraitEntity child, TraitEntity mother, TraitEntity father){
+	private TraitPickerBuilder(ImmutableSet<ITrait> traits, TraitEntity child, TraitEntity mother, TraitEntity father){
 		this(traits, child);
 		this.mother = mother;
 		this.father = father;
+	}
+
+	public static TraitPickerBuilder builder(){
+		return new TraitPickerBuilder();
+	}
+
+	public static TraitPickerBuilder builder(ImmutableSet<ITrait> traits){
+		return new TraitPickerBuilder(traits);
+	}
+
+	public static TraitPickerBuilder builder(ImmutableSet<ITrait> traits, TraitEntity entity){
+		return new TraitPickerBuilder(traits, entity);
+	}
+
+	public static TraitPickerBuilder builder(ImmutableSet<ITrait> traits, TraitEntity child, TraitEntity mother, TraitEntity father){
+		return new TraitPickerBuilder(traits, child, mother, father);
 	}
 
 	public TraitPickerBuilder setTraits(ImmutableSet<ITrait> traits){

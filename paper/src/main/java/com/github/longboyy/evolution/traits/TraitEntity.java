@@ -5,7 +5,7 @@ import com.github.longboyy.evolution.events.AddTraitEvent;
 import com.github.longboyy.evolution.events.ChangeVariationEvent;
 import com.github.longboyy.evolution.events.RemoveTraitEvent;
 import com.github.longboyy.evolution.events.SetTraitsEvent;
-import com.github.longboyy.evolution.util.pdc.StringDoubleMap;
+import com.github.longboyy.evolution.util.pdc.ExtraTypes;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.bukkit.NamespacedKey;
@@ -100,11 +100,11 @@ public class TraitEntity {
 			variation = cve.getVariation();
 			NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
 			Map<String, Double> variations = pdc.has(variationsKey)
-					? pdc.get(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP) : new HashMap<>();
+					? pdc.get(variationsKey, ExtraTypes.STRING_DOUBLE_MAP) : new HashMap<>();
 
 			variation = MoreMath.clamp(variation, -1D, 1D);
 			variations.put(trait.getIdentifier(), variation);
-			pdc.set(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP, variations);
+			pdc.set(variationsKey, ExtraTypes.STRING_DOUBLE_MAP, variations);
 		}
 	}
 

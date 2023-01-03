@@ -16,6 +16,20 @@ public class TraitLogicHandler {
 
 	private static final int TRAITS_PER_CATEGORY = 3;
 
+	/*
+	public static void handleEntitySpawn(TraitEntity entity){
+		if(entity == null || !entity.getTraits().isEmpty()){
+			return;
+		}
+
+		ImmutableSet<ITrait> validTraits = Evolution.getInstance().getTraitManager().getTraits(entity.getType());
+		if(validTraits.isEmpty()){
+			//Evolution.getInstance().info("Attempted to generate traits for entity but valid traits was null");
+			return;
+		}
+	}
+	 */
+
 	public static void handleEntitySpawn(TraitEntity entity){
 		if(!entity.getTraits().isEmpty()){
 			return;
@@ -37,7 +51,7 @@ public class TraitLogicHandler {
 
 			Set<ITrait> traits = validTraits.stream().filter(trait -> trait.getCategory() == category).collect(Collectors.toSet());
 
-			BiasedRandomPicker<ITrait> activePicker = new TraitPickerBuilder(ImmutableSet.copyOf(traits), entity).build();
+			BiasedRandomPicker<ITrait> activePicker = TraitPickerBuilder.builder(ImmutableSet.copyOf(traits), entity).build();
 			if(activePicker != null){
 				ITrait trait = activePicker.getRandom();
 				if(trait != null){
@@ -85,7 +99,7 @@ public class TraitLogicHandler {
 		if(Math.random() <= mutateChance){
 			Set<ITrait> mutateTraits = Evolution.getInstance().getTraitManager().getTraits().stream()
 					.filter(trait -> fullPool.contains(trait)).collect(Collectors.toSet());
-			BiasedRandomPicker<ITrait> traitPicker = new TraitPickerBuilder(ImmutableSet.copyOf(mutateTraits)).setEntity(child).build();
+			BiasedRandomPicker<ITrait> traitPicker = TraitPickerBuilder.builder(ImmutableSet.copyOf(mutateTraits)).setEntity(child).build();
 			if(traitPicker != null){
 				ITrait mutateTrait = traitPicker.getRandom();
 				if(mutateTrait != null){
@@ -102,7 +116,7 @@ public class TraitLogicHandler {
 					.filter(trait -> trait.getCategory() == category).collect(Collectors.toSet());
 
 			if(!categoryTraits.isEmpty()){
-				BiasedRandomPicker<ITrait> categoryPicker = new TraitPickerBuilder(
+				BiasedRandomPicker<ITrait> categoryPicker = TraitPickerBuilder.builder(
 						ImmutableSet.copyOf(categoryTraits),
 						child,
 						mother,

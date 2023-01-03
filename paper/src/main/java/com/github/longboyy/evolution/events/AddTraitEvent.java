@@ -30,6 +30,6 @@ public class AddTraitEvent extends TraitEntityEvent {
 
 	@Override
 	public @NotNull HandlerList getHandlers() {
-		return null;
+		return handlers;
 	}
 }

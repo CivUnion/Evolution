@@ -11,6 +11,7 @@ import com.github.longboyy.evolution.traits.TraitType;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -32,8 +33,10 @@ public class EvolutionCommand extends BaseCommand {
 	@Description("Reloads the config for Evolution")
 	public void onReload(Player player){
 		EvolutionConfigParser configParser = this.plugin.getConfigParser();
+		this.plugin.reloadConfig();
 		if(configParser.parse()){
-			//ConfigurationSection section = configParser.getConfig();
+			//configParser.reset();
+			//ConfigurationSection section = configParser.g
 			//this.manager.parseConfig(section);
 			player.sendMessage(Component.text("Successfully reloaded config.", Evolution.SUCCESS_GREEN));
 		}else{

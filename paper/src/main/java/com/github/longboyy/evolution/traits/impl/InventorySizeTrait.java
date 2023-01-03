@@ -4,6 +4,7 @@ import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.traits.Trait;
 import com.github.longboyy.evolution.traits.TraitCategory;
 import com.github.longboyy.evolution.traits.TraitEntity;
+import com.github.longboyy.evolution.traits.configs.ExpressionTraitConfig;
 import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
@@ -16,9 +17,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Llama;
 import vg.civcraft.mc.civmodcore.utilities.MoreMath;
 
-public class InventorySizeTrait extends Trait {
-
-	private Expression variationExpression = TraitUtils.createVariationExpression("(log(1+x)/log(2))^0.7");
+public class InventorySizeTrait extends Trait<ExpressionTraitConfig> {
 
 	public InventorySizeTrait() {
 		super("llama_inv", TraitCategory.UTILITY, ImmutableSet.copyOf(new EntityType[]{
@@ -62,8 +61,8 @@ public class InventorySizeTrait extends Trait {
 	}
 
 	@Override
-	public void parseConfig(ConfigurationSection section) {
-		super.parseConfig(section);
+	protected Class<ExpressionTraitConfig> getConfigClass() {
+		return ExpressionTraitConfig.class;
 	}
 
 	@Override
@@ -78,7 +77,7 @@ public class InventorySizeTrait extends Trait {
 	private double getModifier(TraitEntity entity){
 		double variation = this.getVariation(entity);
 		if(variation >= 0D){
-			return variationExpression.setVariable("x", variation).evaluate();
+			return this.config.getPositiveExpression().setVariable("x", variation).evaluate();
 		}else{
 			return 0D;
 		}

@@ -103,7 +103,7 @@ public class TraitUtils {
 	}
 
 	public static ImmutableSet<ITrait> generateUniqueTraits(ImmutableSet<ITrait> traits, int amount){
-		BiasedRandomPicker<ITrait> picker = new TraitPickerBuilder(traits).build();
+		BiasedRandomPicker<ITrait> picker = TraitPickerBuilder.builder(traits).build();
 
 		if(picker == null){
 			return ImmutableSet.copyOf(new ITrait[0]);

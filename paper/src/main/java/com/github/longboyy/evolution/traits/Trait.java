@@ -2,7 +2,8 @@ package com.github.longboyy.evolution.traits;
 
 import com.github.longboyy.evolution.Evolution;
 import com.github.longboyy.evolution.events.ApplyTraitEvent;
-import com.github.longboyy.evolution.util.pdc.StringDoubleMap;
+import com.github.longboyy.evolution.traits.configs.TraitConfig;
+import com.github.longboyy.evolution.util.pdc.ExtraTypes;
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -11,17 +12,19 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
 import org.bukkit.persistence.PersistentDataContainer;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
-public abstract class Trait implements ITrait, Cloneable{
+public abstract class Trait<T extends TraitConfig> implements ITrait{
 
 	private static final Random RANDOM = new Random();
 	protected final String identifier;
 	protected final TraitCategory category;
 	protected final ImmutableSet<EntityType> allowedTypes;
+	protected T config;
 
 	protected boolean enabled = true;
 
@@ -41,7 +44,7 @@ public abstract class Trait implements ITrait, Cloneable{
 		NamespacedKey variationsKey = NamespacedKey.fromString("variations", Evolution.getInstance());
 		if(pdc.has(variationsKey)) {
 			Map<String, Double> variations = pdc.has(variationsKey)
-					? pdc.get(variationsKey, StringDoubleMap.STRING_DOUBLE_MAP) : new HashMap<>();
+					? pdc.get(variationsKey, ExtraTypes.STRING_DOUBLE_MAP) : new HashMap<>();
 			if(variations.containsKey(this.getIdentifier())){
 				return variations.get(this.getIdentifier());
 			}
@@ -50,6 +53,11 @@ public abstract class Trait implements ITrait, Cloneable{
 		int randNum = RANDOM.nextInt(Integer.MAX_VALUE);
 		double multiplier = (randNum/(Integer.MAX_VALUE*0.5D))-1D;
 		return this.getMaxVariation()*multiplier;
+	}
+
+	@Override
+	public double getWeight(TraitEntity entity) {
+		return this.config.getWeight();
 	}
 
 	@Override
@@ -104,18 +112,45 @@ public abstract class Trait implements ITrait, Cloneable{
 	}
 
 	@Override
+	public double getMaxVariation() {
+		return this.config.getMaxVariationPerGeneration();
+	}
+
+	@Override
 	public boolean isEnabled() {
 		return this.enabled;
 	}
 
 	@Override
-	public void parseConfig(ConfigurationSection section) {
-		if(section == null){
-			return;
+	public boolean parseConfig(ConfigurationSection section) {
+
+		Class<? extends TraitConfig> clazz = this.getConfigClass();
+		if(clazz == null){
+			return false;
 		}
 
-		this.enabled = section.getBoolean("enabled", true);
+		try {
+			//this.config = (T) clazz.getConstructor(Void.class).newInstance(null);
+			this.config = (T) clazz.getConstructor().newInstance();
+			//this.config = (T) clazz.getConstructors()[0].newInstance();
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			Evolution.getInstance().severe("Failed to create TraitConfig instance", e);
+			return false;
+		}
+
+		if(section != null) {
+			this.config.parse(section);
+			this.enabled = section.getBoolean("enabled", true);
+		}else{
+			Evolution.getInstance().warning(String.format("Trait '%s' is not configured. Is this a mistake?", this.getIdentifier()));
+			this.enabled = true;
+		}
+
+		return true;
+		//this.config.parse();
 	}
+
+	protected abstract Class<T> getConfigClass();
 
 	@Override
 	public boolean equals(Object o) {
