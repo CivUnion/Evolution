@@ -47,13 +47,26 @@ public class SicklyTrait extends Trait<SicklyTrait.SicklyTraitConfig> {
 
 	public SicklyTrait() {
 		super("sickly", TraitCategory.ILLNESS, ImmutableSet.copyOf(new EntityType[]{
+				EntityType.WOLF,
+				EntityType.CAT,
+				EntityType.AXOLOTL,
+				EntityType.LLAMA,
+				EntityType.RABBIT,
+				EntityType.TURTLE,
+				EntityType.PANDA,
+				EntityType.FOX,
+				EntityType.BEE,
+				EntityType.STRIDER,
+				EntityType.HOGLIN,
 				EntityType.COW,
-				EntityType.SHEEP,
+				EntityType.MUSHROOM_COW,
 				EntityType.PIG,
+				EntityType.SHEEP,
 				EntityType.HORSE,
 				EntityType.MULE,
 				EntityType.DONKEY,
-				EntityType.CHICKEN
+				EntityType.CHICKEN,
+				EntityType.GOAT
 		}));
 
 		this.manager = Evolution.getInstance().getTraitManager();

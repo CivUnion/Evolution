@@ -59,6 +59,17 @@ public class FertileTrait extends ListenerTrait<FertileTrait.FertileTraitConfig>
 
 	public FertileTrait() {
 		super("fertile", TraitCategory.HUSBANDRY, ImmutableSet.copyOf(new EntityType[]{
+				EntityType.WOLF,
+				EntityType.CAT,
+				EntityType.AXOLOTL,
+				EntityType.LLAMA,
+				EntityType.RABBIT,
+				EntityType.TURTLE,
+				EntityType.PANDA,
+				EntityType.FOX,
+				EntityType.BEE,
+				EntityType.STRIDER,
+				EntityType.HOGLIN,
 				EntityType.COW,
 				EntityType.MUSHROOM_COW,
 				EntityType.PIG,

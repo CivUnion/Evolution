@@ -71,13 +71,8 @@ public class BoneTrait extends Trait<BoneTrait.BoneTraitConfig> {
 			EntityType.COW,
 			EntityType.SHEEP,
 			EntityType.PIG,
-			EntityType.HORSE,
-			EntityType.MULE,
-			EntityType.DONKEY,
 			EntityType.GOAT,
-			EntityType.HOGLIN,
-			EntityType.LLAMA,
-			EntityType.TRADER_LLAMA
+			EntityType.MUSHROOM_COW
 		}));
 
 		this.manager = Evolution.getInstance().getTraitManager();

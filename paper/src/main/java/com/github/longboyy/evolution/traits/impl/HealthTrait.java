@@ -24,16 +24,26 @@ public class HealthTrait extends Trait<HealthTrait.HealthTraitConfig> {
 	protected static final double DEFAULT_HEALTH = 15D;
 
 	protected static final ImmutableSet<EntityType> APPLICABLE_ENTITY_TYPES = ImmutableSet.copyOf(new EntityType[]{
+			EntityType.WOLF,
+			EntityType.CAT,
+			EntityType.AXOLOTL,
+			EntityType.LLAMA,
+			EntityType.RABBIT,
+			EntityType.TURTLE,
+			EntityType.PANDA,
+			EntityType.FOX,
+			EntityType.BEE,
+			EntityType.STRIDER,
+			EntityType.HOGLIN,
 			EntityType.COW,
-			EntityType.SHEEP,
+			EntityType.MUSHROOM_COW,
 			EntityType.PIG,
+			EntityType.SHEEP,
 			EntityType.HORSE,
 			EntityType.MULE,
 			EntityType.DONKEY,
 			EntityType.CHICKEN,
-			EntityType.LLAMA,
-			EntityType.TRADER_LLAMA,
-			EntityType.STRIDER
+			EntityType.GOAT
 	});
 
 	public static class HealthTraitConfig extends ExpressionTraitConfig {
