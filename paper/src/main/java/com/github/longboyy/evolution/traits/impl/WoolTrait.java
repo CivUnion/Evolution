@@ -16,12 +16,17 @@ import org.bukkit.event.EventPriority;
 import vg.civcraft.mc.civmodcore.utilities.MoreMath;
 import org.bukkit.event.entity.SheepRegrowWoolEvent;
 
+import java.util.HashMap;
+import java.util.UUID;
+
 public class WoolTrait extends ListenerTrait<WoolTrait.WoolTraitConfig> {
 
 	public class WoolTraitConfig extends ExpressionTraitConfig {
 
 		protected double minRegrow = 2D;
 		protected double maxRegrow = 8D;
+
+		protected HashMap<UUID, Integer> grassEatenMap = new HashMap<UUID, Integer>();
 
 		public WoolTraitConfig(){
 		}
@@ -42,23 +47,25 @@ public class WoolTrait extends ListenerTrait<WoolTrait.WoolTraitConfig> {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onGrassEat(SheepRegrowWoolEvent e){
-		int grassEaten = 0;
-		TraitEntity entity = new TraitEntity(e.getEntity());
-		int grassNeeded; 
+		UUID shepUUID = e.getEntity().getUniqueId();
+		if (this.config.grassEatenMap.containsKey(shepUUID)) {
+			TraitEntity entity = new TraitEntity(e.getEntity());
+			int grassNeeded;
 
-		if(!entity.hasTrait(this, TraitType.ACTIVE)) {
-			grassNeeded = 9;
+			if (!entity.hasTrait(this, TraitType.ACTIVE)) {
+				grassNeeded = 9;
+			} else {
+				grassNeeded = Math.toIntExact(Math.round(MoreMath.clamp(this.config.minRegrow * this.getMultiplier(entity), this.config.minRegrow, this.config.maxRegrow)));
+			}
+
+			if (this.config.grassEatenMap.get(shepUUID) < grassNeeded) {
+				this.config.grassEatenMap.put(shepUUID, this.config.grassEatenMap.get(shepUUID) + 1);
+				e.setCancelled(true);
+			}
 		} else {
-			grassNeeded = Math.toIntExact(Math.round(MoreMath.clamp(this.config.minRegrow * this.getMultiplier(entity), this.config.minRegrow, this.config.maxRegrow)));
-		}
-
-		if (!(grassEaten >= grassNeeded)) {
-			grassEaten += 1;
+			this.config.grassEatenMap.put(shepUUID, 1);
 			e.setCancelled(true);
-			return;
 		}
-
-		
 	}
 
 	@Override
