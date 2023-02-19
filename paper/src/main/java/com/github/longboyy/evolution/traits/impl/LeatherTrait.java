@@ -66,7 +66,8 @@ public class LeatherTrait extends Trait<LeatherTrait.LeatherTraitConfig> {
 				EntityType.SHEEP,
 				EntityType.HORSE,
 				EntityType.MULE,
-				EntityType.DONKEY
+				EntityType.DONKEY,
+				EntityType.RABBIT
 		}));
 
 		TraitEntityDropManager.getInstance().registerDrop(this, (entity, map) -> {

@@ -26,7 +26,9 @@ public class SpeedTrait extends Trait<SpeedTrait.SpeedTraitConfig> {
 			EntityType.HORSE,
 			EntityType.MULE,
 			EntityType.DONKEY,
-			EntityType.LLAMA
+			EntityType.LLAMA,
+			EntityType.STRIDER,
+			EntityType.PIG
 	});
 
 	public static class SpeedTraitConfig extends ExpressionTraitConfig {

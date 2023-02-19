@@ -32,6 +32,7 @@ public class FertileTrait extends ListenerTrait<FertileTrait.FertileTraitConfig>
 
 		protected long maxAdditionalTime = 5800L;
 		protected long baseTimeBetweenBreeds = 6000L;
+		protected double sicknessLimit = 0.97D;
 
 		public FertileTraitConfig(){
 		}
@@ -40,6 +41,7 @@ public class FertileTrait extends ListenerTrait<FertileTrait.FertileTraitConfig>
 		public void parse(ConfigurationSection section) {
 			super.parse(section);
 			this.baseTimeBetweenBreeds = section.getLong("baseTimeBetweenBreeds", 6000L);
+			this.sicknessLimit = section.getDouble("sicknessLimit", 0.97D);
 		}
 	}
 
@@ -53,8 +55,21 @@ public class FertileTrait extends ListenerTrait<FertileTrait.FertileTraitConfig>
 
 	private long maxValue = 5800L;
 
+	private final TraitManager manager;
+
 	public FertileTrait() {
 		super("fertile", TraitCategory.HUSBANDRY, ImmutableSet.copyOf(new EntityType[]{
+				EntityType.WOLF,
+				EntityType.CAT,
+				EntityType.AXOLOTL,
+				EntityType.LLAMA,
+				EntityType.RABBIT,
+				EntityType.TURTLE,
+				EntityType.PANDA,
+				EntityType.FOX,
+				EntityType.BEE,
+				EntityType.STRIDER,
+				EntityType.HOGLIN,
 				EntityType.COW,
 				EntityType.MUSHROOM_COW,
 				EntityType.PIG,
@@ -68,6 +83,8 @@ public class FertileTrait extends ListenerTrait<FertileTrait.FertileTraitConfig>
 
 		this.loveTickKey = new NamespacedKey(Evolution.getInstance(), "fertile_love_ticks");
 		this.cooldownHandler = new TickCoolDownHandler<>(Evolution.getInstance(), 20L);
+
+		this.manager = Evolution.getInstance().getTraitManager();
 
 		this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(Evolution.getInstance(), () -> {
 			//ImmutableSet<LivingEntity> entities = Evolution.getInstance().getTraitManager().getEntitiesWith(this, TraitType.ACTIVE);
@@ -96,10 +113,16 @@ public class FertileTrait extends ListenerTrait<FertileTrait.FertileTraitConfig>
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onEntityBreed(EntityBreedEvent event){
+		SicklyTrait sicklyTrait = this.manager.getTrait(SicklyTrait.class);
 		TraitEntity mother = new TraitEntity(event.getMother());
 		TraitEntity father = new TraitEntity(event.getFather());
 
 		Evolution.getInstance().info("Entity breed event");
+
+		if(mother.getVariation(sicklyTrait) >= this.config.sicknessLimit || father.getVariation(sicklyTrait) >= this.config.sicknessLimit) {
+			event.setCancelled(true);
+			return;
+		}
 
 		if(mother.hasTrait(this, TraitType.ACTIVE)){
 			if(this.getLoveTime(mother) > 0L){

@@ -11,3 +11,30 @@ traits:
       lore:
         - A bone with bits of muscle and sinew
 
+  fertile:
+    baseTimeBetweenBreeds: 6000
+    sicknessLimit: 0.97
+
+  health:
+    defaultHealth: 15
+
+  leather:
+    minDrop:
+    maxDrop:
+    item:
+      material: PAPER
+      name: Raw Animal Hide
+      lore:
+        - A thin sheet of raw animal hide
+
+  sickly:
+    spreadRadius: 3
+    spreadChance: 0.0001
+    sicknessLimit: 0.97
+
+  speed:
+    defaultSpeed: 10
+
+  wool:
+    minRegrow: 2
+    maxRegrow: 8
