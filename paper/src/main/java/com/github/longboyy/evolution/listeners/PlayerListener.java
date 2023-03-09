@@ -64,16 +64,16 @@ public class PlayerListener implements Listener {
 		msg.append(Component.newline());
 
 		ImmutableSet<ITrait> activeTraits = entity.getTraits(TraitType.ACTIVE);
-		if(activeTraits != null){
-			msg.append(Component.text("Active", Evolution.SUCCESS_GREEN, TextDecoration.UNDERLINED));
+		if(activeTraits != null&& !activeTraits.isEmpty()){
+			msg.append(Component.text("Dominant", Evolution.SUCCESS_GREEN, TextDecoration.UNDERLINED));
 			msg.append(Component.newline());
 			activeTraits.forEach(trait -> this.generateText(trait, entity, msg));
 			msg.append(Component.newline());
 			//activeTraits.forEach(trait);
 		}
 		ImmutableSet<ITrait> inactiveTraits = entity.getTraits(TraitType.INACTIVE);
-		if(inactiveTraits != null){
-			msg.append(Component.text("Inactive", Evolution.FAILURE_RED, TextDecoration.UNDERLINED));
+		if(inactiveTraits != null && !inactiveTraits.isEmpty()){
+			msg.append(Component.text("Recessive", Evolution.FAILURE_RED, TextDecoration.UNDERLINED));
 			msg.append(Component.newline());
 			inactiveTraits.forEach(trait -> this.generateText(trait, entity, msg));
 		}

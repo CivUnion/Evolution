@@ -98,7 +98,7 @@ public class TraitLogicHandler {
 		double mutateChance = Evolution.getInstance().getConfigParser().getOption("breedMutateChance", 0.5D);
 		if(Math.random() <= mutateChance){
 			Set<ITrait> mutateTraits = Evolution.getInstance().getTraitManager().getTraits().stream()
-					.filter(trait -> fullPool.contains(trait)).collect(Collectors.toSet());
+					.filter(fullPool::contains).collect(Collectors.toSet());
 			BiasedRandomPicker<ITrait> traitPicker = TraitPickerBuilder.builder(ImmutableSet.copyOf(mutateTraits)).setEntity(child).build();
 			if(traitPicker != null){
 				ITrait mutateTrait = traitPicker.getRandom();

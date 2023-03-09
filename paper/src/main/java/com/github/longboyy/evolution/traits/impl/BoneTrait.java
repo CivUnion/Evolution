@@ -43,12 +43,10 @@ public class BoneTrait extends Trait<BoneTrait.BoneTraitConfig> {
 			this.maxDrop = section.getDouble("maxDrop", 1D);
 			if(section.isConfigurationSection("item")){
 				ItemMap map = ConfigHelper.parseItemMapDirectly(section.getConfigurationSection("item"));
-				if(map != null){
-					List<ItemStack> stacks = map.getItemStackRepresentation();
-					if(stacks.size() > 0){
-						this.boneItem = stacks.get(0);
-						//CivModCorePlugin.getInstance().get
-					}
+				List<ItemStack> stacks = map.getItemStackRepresentation();
+				if(stacks.size() > 0){
+					this.boneItem = stacks.get(0);
+					//CivModCorePlugin.getInstance().get
 				}
 			}
 

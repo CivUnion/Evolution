@@ -6,8 +6,7 @@ import com.github.longboyy.evolution.util.TraitUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -17,6 +16,7 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,16 +38,18 @@ public class EntityListener implements Listener {
 		TraitEntity entity = new TraitEntity(event.getEntity());
 
 		switch(event.getSpawnReason()){
+			case SPAWNER_EGG:
+				List<Player> players = event.getLocation().getNearbyPlayers(1D).stream().filter(Player::isOp).toList();
+				if(players.isEmpty() && entity.entity instanceof Ageable mob){
+					mob.setBaby();
+				}
 			case EGG:
 			case DISPENSE_EGG:
 			case OCELOT_BABY:
-			case SPAWNER_EGG:
 			case DEFAULT:
 				//manager.generateTraitsFor(entity);
-				TraitLogicHandler.handleEntitySpawn(entity);
-				break;
 			case NATURAL:
-
+				TraitLogicHandler.handleEntitySpawn(entity);
 			default:
 				return;
 		}

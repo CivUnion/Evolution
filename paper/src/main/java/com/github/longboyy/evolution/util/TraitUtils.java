@@ -92,6 +92,7 @@ public class TraitUtils {
 		manager.registerTrait(new BoneTrait());
 		manager.registerTrait(new FertileTrait());
 		manager.registerTrait(new LeatherTrait());
+		manager.registerTrait(new WoolTrait());
 
 		// Utility Traits
 		manager.registerTrait(new HealthTrait());

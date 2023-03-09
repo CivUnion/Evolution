@@ -21,10 +21,11 @@ import java.util.UUID;
 
 public class WoolTrait extends ListenerTrait<WoolTrait.WoolTraitConfig> {
 
-	public class WoolTraitConfig extends ExpressionTraitConfig {
+	public static class WoolTraitConfig extends ExpressionTraitConfig {
 
-		protected double minRegrow = 2D;
-		protected double maxRegrow = 8D;
+		protected int minRegrow = 2;
+		protected int maxRegrow = 8;
+		protected int regrowDifference = 6;
 
 		protected HashMap<UUID, Integer> grassEatenMap = new HashMap<UUID, Integer>();
 
@@ -34,8 +35,9 @@ public class WoolTrait extends ListenerTrait<WoolTrait.WoolTraitConfig> {
 		@Override
 		public void parse(ConfigurationSection section) {
 			super.parse(section);
-			this.minRegrow = section.getDouble("minRegrow", 2D);
-			this.maxRegrow = section.getDouble("maxRegrow", 8D);
+			this.minRegrow = section.getInt("minRegrow", 2);
+			this.maxRegrow = section.getInt("maxRegrow", 8);
+			this.regrowDifference = maxRegrow - minRegrow;
 		}
 	}
 
@@ -53,9 +55,11 @@ public class WoolTrait extends ListenerTrait<WoolTrait.WoolTraitConfig> {
 			int grassNeeded;
 
 			if (!entity.hasTrait(this, TraitType.ACTIVE)) {
-				grassNeeded = 9;
+				grassNeeded = this.config.maxRegrow;
 			} else {
-				grassNeeded = Math.toIntExact(Math.round(MoreMath.clamp(this.config.minRegrow * this.getMultiplier(entity), this.config.minRegrow, this.config.maxRegrow)));
+				//long loveTime = Math.round(this.config.maxTimeBetweenBreeds - (this.config.differenceBetweenBreeds*modifier));
+				grassNeeded = Math.toIntExact(Math.round(this.config.maxRegrow - (this.config.regrowDifference * this.getMultiplier(entity))));
+				//grassNeeded = Math.toIntExact(Math.round(MoreMath.clamp(this.config.minRegrow * this.getMultiplier(entity), this.config.minRegrow, this.config.maxRegrow)));
 			}
 
 			if (this.config.grassEatenMap.get(shepUUID) < grassNeeded) {

@@ -19,8 +19,8 @@ traits:
     defaultHealth: 15
 
   leather:
-    minDrop:
-    maxDrop:
+    minDrop: 1
+    maxDrop: 5
     item:
       material: PAPER
       name: Raw Animal Hide

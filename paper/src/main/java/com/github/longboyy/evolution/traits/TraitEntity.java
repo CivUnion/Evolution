@@ -71,11 +71,11 @@ public class TraitEntity {
 	}
 
 	public String getName(){
-		return this.getName();
+		return this.entity.getName();
 	}
 
 	public UUID getUniqueId(){
-		return this.getUniqueId();
+		return this.entity.getUniqueId();
 	}
 
 	// Spigot setters/getters end

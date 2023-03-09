@@ -63,11 +63,10 @@ public class LeatherTrait extends Trait<LeatherTrait.LeatherTraitConfig> {
 				EntityType.COW,
 				EntityType.MUSHROOM_COW,
 				EntityType.PIG,
-				EntityType.SHEEP,
 				EntityType.HORSE,
 				EntityType.MULE,
 				EntityType.DONKEY,
-				EntityType.RABBIT
+				EntityType.LLAMA
 		}));
 
 		TraitEntityDropManager.getInstance().registerDrop(this, (entity, map) -> {
@@ -118,7 +117,7 @@ public class LeatherTrait extends Trait<LeatherTrait.LeatherTraitConfig> {
 
 	@Override
 	public String getPrettyName(TraitEntity entity) {
-		return "Leather";
+		return entity.getVariation(this) >= 0 ? "Thicc Skinned" : "Thin Skinned";
 	}
 
 	@Override
